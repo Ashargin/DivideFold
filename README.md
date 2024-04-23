@@ -16,6 +16,8 @@ source myenv/bin/activate
 pip install -e .
 ```
 
+We also recommend that you install LinearFold since it is the prediction function that we use by default : https://github.com/LinearFold/LinearFold
+
 ## Prediction
 
 ### You can predict a sequence's secondary structure using the prediction function :
