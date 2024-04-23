@@ -24,7 +24,7 @@ We also recommend that you install LinearFold since it is the prediction functio
 ``` python
 from dividefold.predict import dividefold_predict
 sequence = "AUCG" * 1000  # example sequence
-pred = dividefold_predict(seq)
+prediction = dividefold_predict(sequence)
 ```
 
 ### By default, the prediction tool to be applied after partitioning is LinearFold. However, DivideFold can use any function you like for the structure prediction part. If you would like to use a custom structure prediction function, you can use :
@@ -35,7 +35,7 @@ def my_structure_prediction_function(seq):  # example prediction function
     return "(" * (len(seq) // 2) + "." * (len(seq) % 2) + ")" * (len(seq) // 2)
 
 sequence = "AUCG" * 1000  # example sequence
-pred = dividefold_predict(sequence, predict_fnc=my_structure_prediction_function)
+prediction = dividefold_predict(sequence, predict_fnc=my_structure_prediction_function)
 ```
 
 ### We also provide wrappers for LinearFold, RNAfold, UFold, MXfold2, RNAsubopt and ProbKnot. If the corresponding tool is installed on your system, you can use it as the prediction function for DivideFold :
@@ -43,14 +43,14 @@ pred = dividefold_predict(sequence, predict_fnc=my_structure_prediction_function
 from dividefold.predict import dividefold_predict, linearfold_predict, rnafold_predict, ufold_predict, mxfold2_predict, rnasubopt_predict, probknot_predict
 
 sequence = "AUCG" * 1000  # example sequence
-pred = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you want to use RNAfold as the prediction function
+prediction = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you want to use RNAfold as the prediction function
 ```
 
 ### If you're only interested in the cut points, you can use :
 ``` python
 from dividefold.predict import dividefold_predict
 sequence = "AUCG" * 1000  # example sequence
-cuts = dividefold_predict(sequence, return_cuts=True)
+fragments = dividefold_predict(sequence, return_cuts=True)
 ```
 This will return the cut points at the final step in the recursive cutting process.
 
