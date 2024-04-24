@@ -18,13 +18,25 @@ pip install -e .
 
 We also recommend that you install LinearFold since it is the prediction function that we use by default : https://github.com/LinearFold/LinearFold
 
+The prediction tools should be installed in the same folder as DivideFold.
+For example, LinearFold should be installed at ../LinearFold.
+
+The prediction tools can also be installed anywhere on your system.
+In that case, the path must be specified with :
+
+``` python
+from dividefold.predict import linearfold_predict
+sequence = "AUCG" * 1000  # example sequence
+linearfold_prediction = linearfold_predict(sequence)
+```
+
 ## Prediction
 
 ### You can predict a sequence's secondary structure using the prediction function :
 ``` python
 from dividefold.predict import dividefold_predict
 sequence = "AUCG" * 1000  # example sequence
-prediction = dividefold_predict(sequence)
+prediction = dividefold_predict(sequence, path_linearfold="path/to/your/linearfold/repository")
 ```
 
 ### By default, the prediction tool to be applied after partitioning is LinearFold. However, DivideFold can use any function you like for the structure prediction part. If you would like to use a custom structure prediction function, you can use :
