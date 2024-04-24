@@ -27,7 +27,7 @@ In that case, the path must be specified with :
 ``` python
 from dividefold.predict import linearfold_predict
 sequence = "AUCG" * 1000  # example sequence
-linearfold_prediction = linearfold_predict(sequence)
+linearfold_prediction = linearfold_predict(sequence, path_linearfold="path/to/your/linearfold/repository")
 ```
 
 ## Prediction
@@ -36,7 +36,7 @@ linearfold_prediction = linearfold_predict(sequence)
 ``` python
 from dividefold.predict import dividefold_predict
 sequence = "AUCG" * 1000  # example sequence
-prediction = dividefold_predict(sequence, path_linearfold="path/to/your/linearfold/repository")
+prediction = dividefold_predict(sequence)
 ```
 
 ### By default, the prediction tool to be applied after partitioning is LinearFold. However, DivideFold can use any function you like for the structure prediction part. If you would like to use a custom structure prediction function, you can use :
