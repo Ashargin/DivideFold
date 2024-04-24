@@ -18,10 +18,11 @@ pip install -e .
 
 We also recommend that you install LinearFold since it is the prediction function that we use by default : https://github.com/LinearFold/LinearFold
 
-The prediction tools should be installed in the same folder as DivideFold.
+We provide wrappers for LinearFold, MXfold2, UFold, ProbKnot, RNAfold and RNAsubopt.
+In order to use one of these prediction tools, it should be installed on your system, in the same folder as DivideFold.
 For example, LinearFold should be installed at ../LinearFold.
 
-The prediction tools can also be installed anywhere on your system.
+The prediction tools can also be installed anywhere else on your system.
 In that case, the path must be specified with :
 
 ``` python
@@ -29,6 +30,9 @@ from dividefold.predict import linearfold_predict
 sequence = "AUCG" * 1000  # example sequence
 linearfold_prediction = linearfold_predict(sequence, path_linearfold="path/to/your/linearfold/repository")
 ```
+
+The installation paths should be specified when using LinearFold, MXfold2, UFold or ProbKnot, if they are not already installed in the same folder as DivideFold.
+The paths for RNAfold and RNAsubopt do not matter and do not need to be specified.
 
 ## Prediction
 
@@ -50,7 +54,7 @@ sequence = "AUCG" * 1000  # example sequence
 prediction = dividefold_predict(sequence, predict_fnc=my_structure_prediction_function)
 ```
 
-### We also provide wrappers for LinearFold, RNAfold, UFold, MXfold2, RNAsubopt and ProbKnot. If the corresponding tool is installed on your system, you can use it as the prediction function for DivideFold :
+### We also provide wrappers for LinearFold, MXfold2, UFold, ProbKnot, RNAfold and RNAsubopt. If the corresponding tool is installed on your system, you can use it as the prediction function for DivideFold :
 ``` python
 from dividefold.predict import dividefold_predict, linearfold_predict, rnafold_predict, ufold_predict, mxfold2_predict, rnasubopt_predict, probknot_predict
 

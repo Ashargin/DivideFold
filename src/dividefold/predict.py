@@ -148,8 +148,8 @@ def probknot_predict(seq, path_probknot="../RNAstructure/exe/ProbKnot.exe"):
     return pred
 
 
-def ensemble_predict(seq, path_linearfold="../LinearFold"):
-    pred_mx = mxfold2_predict(seq)
+def ensemble_predict(seq, path_mxfold2="../mxfold2", path_linearfold="../LinearFold"):
+    pred_mx = mxfold2_predict(seq, path_mxfold2=path_mxfold2)
     pred_lf = linearfold_predict(seq, path_linearfold=path_linearfold)
     pred_rnaf = rnafold_predict(seq)
 
