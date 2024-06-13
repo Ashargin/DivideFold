@@ -11,7 +11,7 @@ import itertools
 
 import keras
 
-from dividefold.utils import format_data, eval_energy, get_scores
+from dividefold.utils import format_data, eval_energy, get_scores, pairs_to_struct
 
 # Settings
 DEFAULT_CUT_MODEL = Path(__file__).parents[2] / "data/models/CNN1D"
@@ -35,8 +35,10 @@ def mxfold2_predict(seq, path_mxfold2="../mxfold2", conf="TR0-canonicals.conf"):
     with open(path_in, "w") as f:
         f.write(f">0\n{seq}\n")
 
-    res = os.popen(f"mxfold2 predict @{path_mxfold2 / 'models' / conf} {path_in}").read()
-    pred = res.split('\n')[2].split(' ')[0]
+    res = os.popen(
+        f"mxfold2 predict @{path_mxfold2 / 'models' / conf} {path_in}"
+    ).read()
+    pred = res.split("\n")[2].split(" ")[0]
 
     os.remove(path_in)
 
@@ -161,6 +163,39 @@ def ensemble_predict(seq, path_mxfold2="../mxfold2", path_linearfold="../LinearF
     preds.sort(key=lambda x: x[1])
 
     return preds
+
+
+def knotfold_predict(seq, path_knotfold="../KnotFold"):
+    # path_knotfold is the path to the KnotFold repository
+    # https://github.com/gongtiansu/KnotFold
+
+    path_knotfold = Path(path_knotfold)
+
+    # prepare input file
+    suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
+    temp_rna_name = f"TEMP_RNA_NAME_{suffix}"
+    path_in = f"temp_knotfold_in_{suffix}.fasta"
+    path_out = f"{temp_rna_name}.bpseq"
+    with open(path_knotfold / path_in, "w") as f:
+        f.write(f">{temp_rna_name}\n{seq}\n")
+
+    # predict
+    subprocess.run(
+        ["python", "KnotFold.py", "-i", path_in, "-o", ".", "--cuda"], cwd=path_knotfold
+    )
+
+    # read output
+    with open(path_knotfold / path_out, "r") as f:
+        pred_txt = f.read()
+    pairs = np.array(
+        [int(line.split(" ")[-1]) for line in pred_txt.strip().split("\n")]
+    )
+    pred = pairs_to_struct(pairs)
+
+    os.remove(path_knotfold / path_in)
+    os.remove(path_knotfold / path_out)
+
+    return pred
 
 
 def oracle_get_cuts(struct):
@@ -358,11 +393,7 @@ def dividefold_get_fragment_ranges_preds(
     return_cuts=False,
 ):
     if max_steps == 0 or len(seq) <= max_length and min_steps <= 0:
-        pred = (
-            predict_fnc(seq)
-            if not return_cuts
-            else "." * len(seq)
-        )
+        pred = predict_fnc(seq) if not return_cuts else "." * len(seq)
         frag_preds = [(np.array([[0, len(seq) - 1]]).astype(int), pred)]
         return frag_preds
 
