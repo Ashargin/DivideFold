@@ -52,6 +52,8 @@ def pairs_to_struct(pairs):
         i += 1
         if (j == 0) or (i > j):
             continue
+        if pairs[pairs[i - 1] - 1] != i:  # malformed pairs
+            continue
 
         bracket_type = 0
         while True:
@@ -66,7 +68,7 @@ def pairs_to_struct(pairs):
             for k, b in enumerate(bracket_bounds):
                 if (i > b[0]) and (j < b[1]):
                     bounds[bracket_type] += get_subbounds(i, j, b[1])
-                    bounds[bracket_type].pop(k) # remove old outer bound
+                    bounds[bracket_type].pop(k)  # remove old outer bound
                     struct[i - 1] = open_brackets[bracket_type]
                     struct[j - 1] = close_brackets[bracket_type]
                     break
