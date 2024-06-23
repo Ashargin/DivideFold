@@ -237,8 +237,8 @@ def run_preds(
                 pred = fnc(seq, **kwargs)
                 if compute_frac is not None:
                     skip_counter += compute_frac - 1
-            except (RuntimeError, IndexError, ValueError) as e:
-                print(f"Failed: length {len(seq)}, error {e}")
+            except (MemoryError, RuntimeError, IndexError, ValueError) as e:
+                print(f"Failed for length {len(seq)}. Error: {e}")
                 pred = dummy_response(len(seq))
         else:
             pred = fnc(seq, **kwargs)
