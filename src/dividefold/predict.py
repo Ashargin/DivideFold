@@ -169,6 +169,9 @@ def knotfold_predict(seq, path_knotfold="../KnotFold"):
     # path_knotfold is the path to the KnotFold repository
     # https://github.com/gongtiansu/KnotFold
 
+    if len(seq) == 1:  # to avoid IndexError from KnotFold for sequences of length 1
+        return "."
+
     path_knotfold = Path(path_knotfold)
 
     # prepare input file
