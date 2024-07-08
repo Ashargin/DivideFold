@@ -16,11 +16,11 @@ source myenv/bin/activate
 pip install -e .
 ```
 
-We also recommend that you install LinearFold since it is the prediction function that we use by default : https://github.com/LinearFold/LinearFold
+We also recommend that you install [LinearFold](https://github.com/LinearFold/LinearFold) since it is the prediction function that we use by default.
 
-We provide wrappers for LinearFold, MXfold2, UFold, ProbKnot, RNAfold and RNAsubopt. \
-In order to use one of these prediction tools, it should be installed on your system, in the same folder as DivideFold. \
-For example, LinearFold should be installed at ../LinearFold.
+We provide wrappers for [KnotFold](https://github.com/gongtiansu/KnotFold), [LinearFold](https://github.com/LinearFold/LinearFold), [MXfold2](https://github.com/mxfold/mxfold2), [UFold](https://github.com/uci-cbcl/UFold), [ProbKnot](https://rna.urmc.rochester.edu/RNAstructure.html), [RNAfold](https://www.tbi.univie.ac.at/RNA/) and [RNAsubopt](https://www.tbi.univie.ac.at/RNA/). \
+In order to use one of these prediction tools, it should be installed on your system, in the same parent folder as DivideFold. \
+For example, [LinearFold](https://github.com/LinearFold/LinearFold) should be installed at `../LinearFold`.
 
 The prediction tools can also be installed anywhere else on your system. \
 In that case, the path must be specified with :
@@ -31,8 +31,8 @@ sequence = "AUCG" * 1000  # example sequence
 linearfold_prediction = linearfold_predict(sequence, path_linearfold="path/to/your/linearfold/repository")
 ```
 
-The installation paths should be specified when using LinearFold, MXfold2, UFold or ProbKnot, if they are not already installed in the same folder as DivideFold. \
-The paths for RNAfold and RNAsubopt do not matter and do not need to be specified.
+The installation paths should be specified when using [KnotFold](https://github.com/gongtiansu/KnotFold), [LinearFold](https://github.com/LinearFold/LinearFold), [MXfold2](https://github.com/mxfold/mxfold2), [UFold](https://github.com/uci-cbcl/UFold) or [ProbKnot](https://rna.urmc.rochester.edu/RNAstructure.html), if they are not already installed in the same parent folder as DivideFold. \
+The paths for [RNAfold](https://www.tbi.univie.ac.at/RNA/) and [RNAsubopt](https://www.tbi.univie.ac.at/RNA/) do not matter and do not need to be specified.
 
 ## Prediction
 
@@ -53,7 +53,8 @@ If you would like to use a custom structure prediction function, you can use :
 from dividefold.predict import dividefold_predict
 
 def my_structure_prediction_function(seq):  # example prediction function
-    return "(" * (len(seq) // 2) + "." * (len(seq) % 2) + ")" * (len(seq) // 2)
+    n = len(seq)
+    return "(" * (n // 2) + "." * (n % 2) + ")" * (n // 2)
 
 sequence = "AUCG" * 1000  # example sequence
 prediction = dividefold_predict(sequence, predict_fnc=my_structure_prediction_function)
@@ -61,10 +62,10 @@ prediction = dividefold_predict(sequence, predict_fnc=my_structure_prediction_fu
 
 ### Using other prediction tools
 
-We also provide wrappers for LinearFold, MXfold2, UFold, ProbKnot, RNAfold and RNAsubopt. \
+We also provide wrappers for [KnotFold](https://github.com/gongtiansu/KnotFold), [LinearFold](https://github.com/LinearFold/LinearFold), [MXfold2](https://github.com/mxfold/mxfold2), [UFold](https://github.com/uci-cbcl/UFold), [ProbKnot](https://rna.urmc.rochester.edu/RNAstructure.html), [RNAfold](https://www.tbi.univie.ac.at/RNA/) and [RNAsubopt](https://www.tbi.univie.ac.at/RNA/). \
 If the corresponding tool is installed on your system, you can use it as the prediction function for DivideFold :
 ``` python
-from dividefold.predict import dividefold_predict, linearfold_predict, rnafold_predict, ufold_predict, mxfold2_predict, rnasubopt_predict, probknot_predict
+from dividefold.predict import dividefold_predict, knotfold_predict, linearfold_predict, rnafold_predict, ufold_predict, mxfold2_predict, rnasubopt_predict, probknot_predict
 
 sequence = "AUCG" * 1000  # example sequence
 prediction = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you want to use RNAfold as the prediction function
