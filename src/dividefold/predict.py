@@ -300,7 +300,7 @@ def dividefold_get_cuts(
     min_height=0.28,
     min_distance=12,
     cut_model=default_cut_model,
-    max_motifs=None,
+    max_motifs=200,
     fuse_to=None,
 ):
     seq_mat = format_data(seq, max_motifs=max_motifs)[np.newaxis, :, :]
@@ -394,7 +394,7 @@ def dividefold_get_fragment_ranges_preds(
     min_steps=0,
     cut_model=default_cut_model,
     predict_fnc=linearfold_predict,
-    max_motifs=None,
+    max_motifs=200,
     fuse_to=None,
     struct="",
     return_cuts=False,
@@ -523,7 +523,10 @@ def dividefold_predict(
     return_cuts=False,
 ):
     if max_length is None:
-        max_length = 2000 if len(seq) > 2500 else 400
+        if predict_fnc != "knotfold_predict":
+            max_length = 2000 if len(seq) > 2500 else 400
+        else:
+            max_length = 1000
 
     if max_steps is not None and max_steps < min_steps:
         raise Warning("max_steps must be greater than min_steps.")
