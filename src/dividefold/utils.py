@@ -44,9 +44,11 @@ def struct_to_pairs(struct):
     return pairs
 
 
-def pairs_to_struct(pairs):
+def pairs_to_struct(pairs, start_bracket=0):
     open_brackets = ["(", "[", "<", "{"] + [chr(65 + i) for i in range(26)]
     close_brackets = [")", "]", ">", "}"] + [chr(97 + i) for i in range(26)]
+    open_brackets = open_brackets[start_bracket:]
+    close_brackets = close_brackets[start_bracket:]
 
     # Add even more bracket characters in case there are too many pseudoknot levels
     bonus_characters = [chr(i) for i in range(256, 383) if i not in [312, 329, 376]]
@@ -97,7 +99,7 @@ def pairs_to_struct(pairs):
     return "".join(struct)
 
 
-def remove_pseudoknots(struct_or_pairs):
+def remove_pseudoknots(struct_or_pairs, return_pseudoknots=False):
     # Wrapper for the pseudoknot removal functions from S. Smit, K. Rother, J. Heringa, and R. Knight
     # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2248259/
     # https://github.com/pycogent/pycogent/blob/f720cc3753429d130f9e9bc0756b8878c3d50ef2/cogent/struct/knots.py
@@ -111,18 +113,38 @@ def remove_pseudoknots(struct_or_pairs):
         i += 1
         if (j > 0) and (i < j):
             cogent_pairs.append((i, j))
-    cogent_pseudofree_pairs = cogent_remove_pseudoknots(cogent_pairs)
-    assert set(cogent_pseudofree_pairs).issubset(cogent_pairs)
 
-    pseudofree_pairs = np.zeros_like(pairs)
-    for i, j in cogent_pseudofree_pairs:
-        pseudofree_pairs[i - 1] = j
-        pseudofree_pairs[j - 1] = i
+    # Call the pseudoknot removal function
+    cogent_pseudofree_pairs, cogent_pseudoknot_pairs = cogent_remove_pseudoknots(
+        cogent_pairs, return_removed=True
+    )
+    assert set(cogent_pseudofree_pairs).issubset(cogent_pairs)
+    assert set(cogent_pseudoknot_pairs) == set(cogent_pairs) - set(
+        cogent_pseudofree_pairs
+    )
+
+    def cogent_to_numpy(cogent_pairs):
+        numpy_pairs = np.zeros_like(pairs)
+        for i, j in cogent_pairs:
+            numpy_pairs[i - 1] = j
+            numpy_pairs[j - 1] = i
+        return numpy_pairs
+
+    pseudofree_pairs = cogent_to_numpy(cogent_pseudofree_pairs)
+    pseudoknot_pairs = cogent_to_numpy(cogent_pseudoknot_pairs)
 
     pseudofree_struct = pairs_to_struct(pseudofree_pairs)
+    pseudoknot_struct = pairs_to_struct(pseudoknot_pairs, start_bracket=1)
     assert set(pseudofree_struct).issubset({".", "(", ")"})
 
-    return pseudofree_struct if seq_format == "struct" else pseudofree_pairs
+    if return_pseudoknots:
+        return (
+            (pseudofree_struct, pseudoknot_struct)
+            if seq_format == "struct"
+            else (pseudofree_pairs, pseudoknot_pairs)
+        )
+    else:
+        return pseudofree_struct if seq_format == "struct" else pseudofree_pairs
 
 
 def seq2kmer(seq, k):
