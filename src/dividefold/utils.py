@@ -367,7 +367,7 @@ def get_scores(y, yhat, yhat_optional=None):
     ref = {(i + 1, j) for i, j in enumerate(y_pairs) if i + 1 < j}
     pred = {(i + 1, j) for i, j in enumerate(yhat_pairs) if i + 1 < j}
     optional = {(i + 1, j) for i, j in enumerate(yhat_optional_pairs) if i + 1 < j}
-    ref = ref.union(optional.intersection(ref))
+    pred = pred.union(optional.intersection(ref))
 
     tp = len(ref & pred)
     fp = len(pred - ref)
