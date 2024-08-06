@@ -347,6 +347,7 @@ def run_preds(
             )
             line = f'{name.split("#Name: ")[1]},{seq},{struct},{break_rate},{compression},{n_frags}\n'
         else:
+            pred = optimize_pseudoknots(pred) if set(pred) != {"?"} else pred
             line = f'{name.split("#Name: ")[1]},{seq},{struct},{pred}\n'
         with open(out_path, "a") as f_out:
             f_out.write(line)
