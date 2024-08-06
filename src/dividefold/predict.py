@@ -11,7 +11,13 @@ import itertools
 
 import keras
 
-from dividefold.utils import format_data, eval_energy, get_scores, pairs_to_struct
+from dividefold.utils import (
+    format_data,
+    eval_energy,
+    get_scores,
+    pairs_to_struct,
+    remove_pseudoknots,
+)
 
 # Settings
 DEFAULT_CUT_MODEL = Path(__file__).parents[2] / "data/models/CNN1D"
@@ -210,7 +216,7 @@ def oracle_get_cuts(struct):
         return [], True
 
     # Determine depth levels
-    struct = re.sub("[^\(\)\.]", ".", struct)
+    struct = remove_pseudoknots(struct)
     depths = []
     count = 0
     for c in struct:
