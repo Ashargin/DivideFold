@@ -16,7 +16,7 @@ from dividefold.utils import (
     eval_energy,
     get_scores,
     pairs_to_struct,
-    remove_pseudoknots,
+    optimize_pseudoknots,
 )
 
 # Settings
