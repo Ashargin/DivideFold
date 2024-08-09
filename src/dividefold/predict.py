@@ -235,6 +235,22 @@ def pkiss_predict(seq):
     return pred
 
 
+def ipknot_predict(seq):
+    # https://github.com/satoken/ipknot
+
+    suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
+    path_in = f"temp_ipknot_in_{suffix}.fa"
+    with open(path_in, "w") as f:
+        f.write(f">0\n{seq}\n")
+
+    res = os.popen(f"ipknot {path_in}").read()
+    pred = res.split("\n")[2]
+
+    os.remove(path_in)
+
+    return pred
+
+
 def oracle_get_cuts(struct):
     if len(struct) <= 3:
         return [], True
