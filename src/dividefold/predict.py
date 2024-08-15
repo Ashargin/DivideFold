@@ -6,7 +6,7 @@ import time
 import datetime
 import re
 import numpy as np
-from scipy import signal
+import scipy.signal
 import itertools
 
 import keras
@@ -361,7 +361,9 @@ def dividefold_get_cuts(
     min_height = min(min_height, max(cuts))
 
     def get_peaks(min_height):
-        peaks = signal.find_peaks(cuts, height=min_height, distance=min_distance)[0]
+        peaks = scipy.signal.find_peaks(cuts, height=min_height, distance=min_distance)[
+            0
+        ]
         if peaks.size > 0 and (peaks[0] == 0):
             peaks = peaks[1:]
         if peaks.size > 0 and (peaks[-1] == len(seq)):
@@ -579,7 +581,7 @@ def dividefold_predict(
             max_length = 1000
 
     if max_steps is not None and max_steps < min_steps:
-        raise Warning("max_steps must be greater than min_steps.")
+        raise ValueError("max_steps must be greater than min_steps.")
 
     if struct:
         struct = optimize_pseudoknots(struct)
