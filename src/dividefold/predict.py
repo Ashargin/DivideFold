@@ -225,7 +225,7 @@ def pkiss_predict(seq):
     pred = ["" if c in ["A", "U", "C", "G"] else "." for c in seq]
     seq = re.sub("[^AUCG]", "", seq)
 
-    res = os.popen(f"pKiss --mode=mfe --strategy=A {seq}").read()
+    res = os.popen(f"pKiss --mode=mfe {seq}").read()
     sub_pred = res.split("\n")[2].split(" ")[-1]
 
     i = 0
