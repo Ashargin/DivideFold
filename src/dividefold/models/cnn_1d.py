@@ -3,8 +3,8 @@ from keras.models import Model
 from math import log2
 
 
-def CNN1D(input_shape=(None, 297), max_dil=512, features=64, reverse_dil=True):
-    input_layer = Input(input_shape)
+def CNN1D(max_motifs=200, max_dil=256, features=64, reverse_dil=True):
+    input_layer = Input((None, max_motifs + 4))
 
     # Conv
     dilations = [1] + [2**i for i in range(int(log2(max_dil)) + 1)]

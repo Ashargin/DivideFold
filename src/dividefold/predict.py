@@ -20,13 +20,10 @@ from dividefold.utils import (
 )
 
 # Settings
-DEFAULT_CUT_MODEL = Path(__file__).parents[2] / "data/models/CNN1D"
+DEFAULT_CUT_MODEL = Path(__file__).parents[2] / "data/models/divide_model.keras"
 
 # Load cut model
-default_cut_model = keras.layers.TFSMLayer(
-    DEFAULT_CUT_MODEL,
-    call_endpoint="serving_default",
-)
+default_cut_model = keras.models.load_model(DEFAULT_CUT_MODEL)
 
 
 # Prediction functions
@@ -280,7 +277,7 @@ def oracle_get_cuts(struct):
         return [], True
 
     # Determine depth levels
-    struct = re.sub("[^\(\)\.]", ".", struct)
+    struct = re.sub(r"[^\(\)\.]", ".", struct)
     depths = []
     count = 0
     for c in struct:
@@ -375,9 +372,10 @@ def dividefold_get_cuts(
 ):
     seq_mat = format_data(seq, max_motifs=max_motifs)[np.newaxis, :, :]
 
-    cuts = cut_model(seq_mat)
-    assert len(cuts.values()) == 1
-    cuts = list(cuts.values())[0].numpy().ravel()
+    # Get numpy array from pytorch backend
+    # If you're using a tensorflow backend, use :
+    # cuts = cut_model(seq_mat).numpy().ravel()
+    cuts = cut_model(seq_mat).detach().cpu().numpy().ravel()
     min_height = min(min_height, max(cuts))
 
     def get_peaks(min_height):

@@ -1,31 +1,27 @@
-import os
-import pickle
 import numpy as np
 import pandas as pd
 import keras
-
-# import torch
-# from transformers import AutoTokenizer, AutoModel
-from scipy import signal
 from pathlib import Path
 
-from dividefold.utils import format_data, apply_mutation
-from dividefold.models.mlp import MLP
+from dividefold.utils import format_data, apply_mutation, evoaug_augment
 from dividefold.models.cnn_1d import CNN1D
-from dividefold.models.bilstm import BiLSTM
-from dividefold.models.loss import inv_exp_distance_to_cut_loss
+from dividefold.predict import oracle_get_cuts
 
+# Settings
 MAX_MOTIFS = 200
 MAX_DIL = 256
-DATA_AUGMENT_MUTATION = True
+MIN_LEN = 400
+DATA_AUGMENT_TYPE = "EVOAUG"
+EPOCHS = 10  # change this if you want to train for fewer or more epochs
 
 # Load model
-model = CNN1D(input_shape=(None, MAX_MOTIFS + 4), max_dil=MAX_DIL)
-# model = MLP(input_shape=(None, MAX_MOTIFS + 4))
-# model = BiLSTM(input_shape=(None, MAX_MOTIFS + 4))
+model = CNN1D(max_motifs=MAX_MOTIFS, max_dil=MAX_DIL)
+# Optional : if you want to load our pre-trained weights before fine-tuning :
+# pretrained_model = keras.models.load_model(Path(__file__).parents[1] / "data/models/divide_model.keras")
+# model.set_weights(pretrained_model.weights)
 model.compile(
     optimizer="adam",
-    loss=inv_exp_distance_to_cut_loss,
+    loss="mean_squared_error",
     run_eagerly=True,
 )
 
@@ -34,194 +30,94 @@ model.compile(
 def motif_data_generator(
     path_in,
     max_motifs=MAX_MOTIFS,
-    min_len=400,
+    min_len=MIN_LEN,
     max_len=None,
-    from_cache=False,
-    data_augment_mutation=DATA_AUGMENT_MUTATION,
+    data_augment_type=DATA_AUGMENT_TYPE,
+    loss_lbda=0.5,
 ):
-    files = None
-    df_in = None
-    if from_cache:
-        files = os.listdir(path_in)
-        np.random.shuffle(files)
-    else:
-        path_df_in = path_in.parent / (path_in.name + ".csv")
-        df_in = pd.read_csv(path_df_in, index_col=0)
-        df_in = df_in.sample(frac=1.0)
-        if min_len is not None:
-            df_in = df_in[df_in.seq.apply(len) > min_len]
-        if max_len is not None:
-            df_in = df_in[df_in.seq.apply(len) <= max_len]
-        assert df_in.isna().sum().sum() == 0
-
-    df_motifs = pd.read_csv(Path("data/motif_seqs.csv"), index_col=0)
-    df_motifs = df_motifs[df_motifs.time < 0.012].reset_index(drop=True)
-    max_motifs = df_motifs.shape[0] if max_motifs is None else max_motifs
-    motif_used_index = (
-        df_motifs.sort_index().sort_values("time").index[:max_motifs].sort_values()
-    )
-    used_index = [0, 1, 2, 3] + (motif_used_index + 4).to_list()  # add one-hot
+    # Load data
+    df_in = pd.read_csv(path_in, index_col=0)
+    df_in = df_in.sample(frac=1.0)
+    if min_len is not None:
+        df_in = df_in[df_in.seq.apply(len) > min_len]
+    if max_len is not None:
+        df_in = df_in[df_in.seq.apply(len) <= max_len]
+    assert df_in.isna().sum().sum() == 0
 
     i = 0
     while True:
-        seq_mat, cuts_mat, outer = None, None, None
-        if from_cache:
-            if data_augment_mutation:
-                raise Warning("Mutation data augmentation is unavailable from cache.")
-            with open(path_in / files[i % len(files)], "rb") as infile:
-                seq_mat, cuts_mat, outer = pickle.load(infile)
+        # Get next observation
+        row = df_in.iloc[i % df_in.shape[0]]
+        seq, struct = row.seq, row.struct
 
-            seq_mat = seq_mat.toarray()
-            cuts_mat = cuts_mat.toarray()
-            # outer = outer.toarray()
+        # Apply data augmentation
+        if data_augment_type == "MUTATION_SEQ":
+            seq, struct = apply_mutation(
+                seq,
+                struct,
+                mutation_proba=0.1 * np.random.random(),
+                struct_deletion_proba=0.0,
+            )
+        elif data_augment_type == "MUTATION_SEQ_STRUCT":
+            seq, struct = apply_mutation(
+                seq,
+                struct,
+                mutation_proba=0.1 * np.random.random(),
+                struct_deletion_proba=0.1 * np.random.random(),
+            )
+        elif data_augment_type == "EVOAUG":
+            seq, struct = evoaug_augment(seq, struct)
+        elif data_augment_type is not None:
+            raise ValueError(
+                'data_augment_type should be None or one of ["MUTATION_SEQ", "MUTATION_SEQ_STRUCT", "EVOAUG"].'
+            )
 
-            seq_mat = seq_mat[:, used_index]  # keep top max_motifs motifs
-            cuts_mat = np.where(cuts_mat.ravel() == 1)[0].astype(float)  # cut indices
+        # Compute cut points from structure
+        cuts, _ = oracle_get_cuts(struct)
+        cuts = str(cuts).replace(",", "")
 
-        else:
-            row = df_in.iloc[i % df_in.shape[0]]
-            seq, struct, cuts = row.seq, row.struct, row.cuts
+        # Format data
+        seq_mat = format_data(seq, max_motifs=max_motifs)
+        cuts_mat = np.array([float(c) for c in cuts[1:-1].split(" ")])
 
-            if data_augment_mutation:
-                seq, struct = apply_mutation(
-                    seq, struct, mutation_proba=0.1 * np.random.random()
-                )
-
-            seq_mat = format_data(seq, max_motifs=max_motifs)
-            cuts_mat = np.array([float(c) for c in cuts[1:-1].split(" ")])
+        # Inverse exponential distance to cut points loss
+        loss_array = np.abs(
+            cuts_mat.reshape((1, -1)) - np.arange(len(seq)).reshape((-1, 1))
+        ).min(axis=1)
+        loss_array = np.exp(-loss_lbda * loss_array)
 
         i += 1
-        if (max_len is not None and seq_mat.shape[0] > max_len) or (
-            min_len is not None and seq_mat.shape[0] <= min_len
-        ):
-            continue
 
-        yield seq_mat.reshape((1, seq_mat.shape[0], max_motifs + 4)), cuts_mat.reshape(
-            (1, cuts_mat.shape[0])
+        assert seq_mat.shape == (len(seq), max_motifs + 4)
+        assert loss_array.shape == (len(seq),)
+
+        yield seq_mat.reshape((1, len(seq), max_motifs + 4)), loss_array.reshape(
+            (1, len(seq))
         )
-
-
-# def dnabert_data_generator(csv_path, max_len=None):
-#     dnabert_tokenizer = AutoTokenizer.from_pretrained(
-#         "zhihan1996/DNA_bert_6", trust_remote_code=True
-#     )
-#     dnabert_encoder = AutoModel.from_pretrained(
-#         "zhihan1996/DNA_bert_6", trust_remote_code=True
-#     )
-#
-#     df = pd.read_csv(csv_path, index_col=0)
-#     df = df.sample(frac=1.0)
-#
-#     seq_mat, cuts_mat, outer = None, None, None
-#     i = 0
-#     while True:
-#         seq = df.iloc[i].seq
-#         cuts = [int(x) for x in df.iloc[i].cuts[1:-1].split()]
-#
-#         i += 1
-#         if max_len is not None and len(seq) > max_len:
-#             continue
-#
-#         tokenized = dnabert_tokenizer(
-#             seq2kmer(seq.replace("U", "T"), k=6),
-#             padding="longest",
-#             pad_to_multiple_of=512,
-#         )
-#         encoded = dnabert_encoder(
-#             torch.tensor([tokenized["input_ids"]]).view(-1, 512),
-#             torch.tensor([tokenized["attention_mask"]]).view(-1, 512),
-#         )
-#         seq_mat, pooled_seq_mat = encoded[0], encoded[1]
-#
-#         tokens_len = len(seq) - 3
-#         seq_mat = np.vstack(seq_mat.detach().numpy())[:tokens_len]
-#         seq_mat = np.vstack(
-#             [seq_mat[0], seq_mat[0], seq_mat, seq_mat[-1]]
-#         )  ###### fix size ?
-#         # pooled_seq_mat = np.mean(pooled_seq_mat.detach().numpy(), axis=0)
-#         cuts_mat = np.array(cuts)
-#
-#         # explore LLMs / generatives / T5
-#
-#         yield seq_mat.reshape((1, len(seq), 768)), cuts_mat.reshape((1, len(cuts)))
 
 
 # Fit model
-train_path = Path("data/data_splits/train")
-val_path = Path("data/data_splits/validation_sequencewise")
+# You can specify your data here : .csv file with "seq" and "struct" columns in header
+# "seq" is the rna sequence, "struct" is the secondary structure in dot-bracket format
+train_path = Path(__file__).parents[1] / "data/data_splits/train.csv"
+val_path = Path(__file__).parents[1] / "data/data_splits/validation_sequencewise.csv"
 train_gen = motif_data_generator(train_path)
-val_gen = motif_data_generator(val_path)
-histories = []
+val_gen = motif_data_generator(val_path, data_augment_type=None)
 losses = []
-while True:
+for i in range(EPOCHS):
     history = model.fit(
         train_gen,
         validation_data=val_gen,
-        steps_per_epoch=378,
+        steps_per_epoch=4000,
+        validation_steps=400,
         epochs=1,
-        validation_steps=33,
     )
-    histories.append(history.history)
-    this_loss = round(100000 * np.mean(history.history["val_loss"]), 2)
-
-    must_save = (not losses) or (this_loss < min(losses))
-    if must_save:
-        model.save(Path("data/models/BiLSTM"))
+    this_loss = round(100000 * np.mean(history.history["val_loss"]))
+    model.save(Path(__file__).parents[1] / "data/models/trained_epoch{i+1}.keras")
     losses.append(this_loss)
+    print(f"Losses (epoch 1 to {i+1}):")
     print(losses)
-    print("SAVED" if must_save else "DISCARDED")
-
-import matplotlib.pyplot as plt
-
-#
-# loss = history.history["loss"]
-# val_loss = history.history["val_loss"]
-# X = np.arange(len(loss))
-# plt.plot(X, loss, label="Train loss")
-# plt.plot(X, val_loss, label="Validation loss")
-# plt.legend()
-# plt.xlim(([0, 100]))
-# plt.xlabel("Epoch")
-# plt.ylabel("Loss")
-# plt.title("Training loss curve (sequence-wise train / val split)")
-# plt.savefig(
-#     rf"data/png/training_curve_cnn_sequencewise_{MAX_MOTIFS}motifs{MAX_DIL}dilINV{'_augmented' if DATA_AUGMENT_MUTATION else ''}.png"
-# )
-# plt.show()
-#
-my_model = keras.models.load_model(Path("data/models/CNN1D"), compile=False)
-my_model.compile(
-    optimizer="adam",
-    loss=inv_exp_distance_to_cut_loss,
-    run_eagerly=True,
-)
-test_datagen = motif_data_generator(Path("data/data_splits/test_sequencewise"))
-
-
-def plot_cut_probabilities():
-    seq_mat, cuts_mat = next(test_datagen)
-    preds = my_model(seq_mat).numpy().ravel()
-    cuts_mat = cuts_mat.ravel().astype(int)
-
-    X = np.arange(len(preds)) + 1
-    for i, x in enumerate(X[cuts_mat]):
-        plt.plot(
-            [x, x],
-            [0, 1],
-            color="black",
-            linewidth=1.5,
-            label="True cut points" if i == 0 else "",
+    if min(losses) > 1000:
+        print(
+            "WARNING: if after 2 or 3 epochs, the loss has not gone below 1000, the model might be stale and failed in finding an optimization path. If this happens repeatedly, decrease MAX_DIL for an easier optimization path. Performances might decrease slightly."
         )
-    plt.plot(X, preds, color="tab:orange", label="Predicted probabilities to cut")
-
-    peaks = signal.find_peaks(preds, height=0.28, distance=12)[0]
-    plt.plot(X[peaks], preds[peaks], "o", color="tab:blue", label="Selected cut points")
-
-    plt.xlim([X[0], X[-1]])
-    plt.ylim([0, 1])
-
-    plt.title(
-        "Predicted cutting probabilities and selected cut points\ncompared to true cut points"
-    )
-    plt.legend()
-    plt.show()
