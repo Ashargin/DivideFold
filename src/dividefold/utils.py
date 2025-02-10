@@ -6,7 +6,7 @@ from pathlib import Path
 import datetime
 import warnings
 
-from dividefold.cogent.struct.knots import inc_length as cogent_remove_pseudoknots
+from dividefold.cogent.struct.knots import inc_range as cogent_remove_pseudoknots
 
 # Read motifs
 df_motifs = pd.read_csv(Path(__file__).parents[2] / "data/motif_seqs.csv", index_col=0)
@@ -827,6 +827,9 @@ def get_scores_df(path_in):
         .replace("_rnaf_", "_")
         .replace("_lf_", "_")
         .replace("_kf_", "_")
+        .replace("_ipk_", "_")
+        .replace("_pbk_", "_")
+        .replace("_pks_", "_")
         .replace(".csv", "_cuttingmetrics.csv")
     )
     cutting_metric_path = (

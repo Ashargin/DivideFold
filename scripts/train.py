@@ -3,7 +3,12 @@ import pandas as pd
 import keras
 from pathlib import Path
 
-from dividefold.utils import format_data, apply_mutation, evoaug_augment
+from dividefold.utils import (
+    format_data,
+    optimize_pseudoknots,
+    apply_mutation,
+    evoaug_augment,
+)
 from dividefold.models.cnn_1d import CNN1D
 from dividefold.predict import oracle_get_cuts
 
@@ -49,6 +54,7 @@ def motif_data_generator(
         # Get next observation
         row = df_in.iloc[i % df_in.shape[0]]
         seq, struct = row.seq, row.struct
+        struct = optimize_pseudoknots(struct)
 
         # Apply data augmentation
         if data_augment_type == "MUTATION_SEQ":
