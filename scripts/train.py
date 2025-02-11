@@ -5,7 +5,6 @@ from pathlib import Path
 
 from dividefold.utils import (
     format_data,
-    optimize_pseudoknots,
     apply_mutation,
     evoaug_augment,
 )
@@ -54,7 +53,6 @@ def motif_data_generator(
         # Get next observation
         row = df_in.iloc[i % df_in.shape[0]]
         seq, struct = row.seq, row.struct
-        struct = optimize_pseudoknots(struct)
 
         # Apply data augmentation
         if data_augment_type == "MUTATION_SEQ":
