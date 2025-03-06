@@ -6,7 +6,7 @@ from pathlib import Path
 from dividefold.utils import (
     format_data,
     apply_mutation,
-    evoaug_augment,
+    augment,
 )
 from dividefold.models.cnn_1d import CNN1D
 from dividefold.predict import oracle_get_cuts
@@ -15,7 +15,6 @@ from dividefold.predict import oracle_get_cuts
 MAX_MOTIFS = 200
 MAX_DIL = 256
 MIN_LEN = 400
-DATA_AUGMENT_TYPE = "EVOAUG"
 EPOCHS = 10  # change this if you want to train for fewer or more epochs
 
 # Load model
@@ -36,7 +35,6 @@ def motif_data_generator(
     max_motifs=MAX_MOTIFS,
     min_len=MIN_LEN,
     max_len=None,
-    data_augment_type=DATA_AUGMENT_TYPE,
     loss_lbda=0.5,
 ):
     # Load data
@@ -55,26 +53,7 @@ def motif_data_generator(
         seq, struct = row.seq, row.struct
 
         # Apply data augmentation
-        if data_augment_type == "MUTATION_SEQ":
-            seq, struct = apply_mutation(
-                seq,
-                struct,
-                mutation_proba=0.1 * np.random.random(),
-                struct_deletion_proba=0.0,
-            )
-        elif data_augment_type == "MUTATION_SEQ_STRUCT":
-            seq, struct = apply_mutation(
-                seq,
-                struct,
-                mutation_proba=0.1 * np.random.random(),
-                struct_deletion_proba=0.1 * np.random.random(),
-            )
-        elif data_augment_type == "EVOAUG":
-            seq, struct = evoaug_augment(seq, struct)
-        elif data_augment_type is not None:
-            raise ValueError(
-                'data_augment_type should be None or one of ["MUTATION_SEQ", "MUTATION_SEQ_STRUCT", "EVOAUG"].'
-            )
+        seq, struct = augment(seq, struct)
 
         # Compute cut points from structure
         cuts, _ = oracle_get_cuts(struct)
