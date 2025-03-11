@@ -369,13 +369,25 @@ def dividefold_get_cuts(
     cut_model=default_cut_model,
     max_motifs=200,
     fuse_to=None,
+    backend="pytorch",
 ):
     seq_mat = format_data(seq, max_motifs=max_motifs)[np.newaxis, :, :]
 
     # Get numpy array from pytorch backend
-    # If you're using a tensorflow backend, use :
-    # cuts = cut_model(seq_mat).numpy().ravel()
-    cuts = cut_model(seq_mat).detach().cpu().numpy().ravel()
+    cuts = None
+    if backend == "pytorch":
+        try:
+            cuts = cut_model(seq_mat).detach().cpu().numpy().ravel()
+        except AttributeError:
+            raise ValueError(
+                'It seems like you are using a Tensorflow backend, but the default expected backend is PyTorch. Please try again using backend="tensorflow".'
+            )
+    elif backend == "tensorflow":
+        cuts = cut_model(seq_mat).numpy().ravel()
+    else:
+        raise ValueError(
+            f'The backend argument should be either "pytorch" or "tensorflow". Got: {backend}.'
+        )
     min_height = min(min_height, max(cuts))
 
     def get_peaks(min_height):
@@ -468,6 +480,7 @@ def dividefold_get_fragment_ranges_preds(
     fuse_to=None,
     struct="",
     return_cuts=False,
+    backend="pytorch",
 ):
     if max_steps == 0 or len(seq) <= max_length and min_steps <= 0:
         pred = predict_fnc(seq) if not return_cuts else "." * len(seq)
@@ -478,7 +491,11 @@ def dividefold_get_fragment_ranges_preds(
         cuts, outer = oracle_get_cuts(struct)
     else:
         cuts, outer = dividefold_get_cuts(
-            seq, cut_model=cut_model, max_motifs=max_motifs, fuse_to=fuse_to
+            seq,
+            cut_model=cut_model,
+            max_motifs=max_motifs,
+            fuse_to=fuse_to,
+            backend=backend,
         )
 
     # Cut sequence into subsequences
@@ -521,6 +538,7 @@ def dividefold_get_fragment_ranges_preds(
             fuse_to=fuse_to,
             struct=substruct,
             return_cuts=return_cuts,
+            backend=backend,
         )
 
         for _range, pred in this_frag_preds:
@@ -550,6 +568,7 @@ def dividefold_get_fragment_ranges_preds(
             fuse_to=fuse_to,
             struct=substruct,
             return_cuts=return_cuts,
+            backend=backend,
         )
 
         sep = right_b_1 - left_b_1
@@ -591,6 +610,7 @@ def dividefold_predict(
     struct="",
     struct_to_print_fscores="",
     return_cuts=False,
+    backend="pytorch",
 ):
     if max_length is None:
         if (predict_fnc is None) or (predict_fnc.__name__ != "knotfold_predict"):
@@ -617,6 +637,7 @@ def dividefold_predict(
         fuse_to=fuse_to,
         struct=struct,
         return_cuts=return_cuts,
+        backend=backend,
     )
 
     if return_cuts:
