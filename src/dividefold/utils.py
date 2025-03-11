@@ -215,7 +215,7 @@ def seq2kmer(seq, k):
 
 
 ## Data augmentations
-def apply_mutation(seq, struct, mutation_proba=1.0, mutation_proba=0.0):
+def apply_mutation(seq, struct, mutation_proba=1.0, struct_deletion_proba=0.0):
     struct_no_pk = re.sub(r"[^\(\)\.]", ".", struct)
     pairs = struct_to_pairs(struct_no_pk)
 
