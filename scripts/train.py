@@ -57,11 +57,10 @@ def motif_data_generator(
 
         # Compute cut points from structure
         cuts, _ = oracle_get_cuts(struct)
-        cuts = str(cuts).replace(",", "")
 
         # Format data
         seq_mat = format_data(seq, max_motifs=max_motifs)
-        cuts_mat = np.array([float(c) for c in cuts[1:-1].split(" ")])
+        cuts_mat = np.array([float(c) for c in cuts])
 
         # Inverse exponential distance to cut points loss
         loss_array = np.abs(
@@ -82,8 +81,8 @@ def motif_data_generator(
 # Fit model
 # You can specify your data here : .csv file with "seq" and "struct" columns in header
 # "seq" is the rna sequence, "struct" is the secondary structure in dot-bracket format
-train_path = Path(__file__).parents[1] / "data/data_splits/train.csv"
-val_path = Path(__file__).parents[1] / "data/data_splits/validation_sequencewise.csv"
+train_path = Path(__file__).parents[1] / "data/data_structures/Train.csv"
+val_path = Path(__file__).parents[1] / "data/data_structures/Validation.csv"
 train_gen = motif_data_generator(train_path)
 val_gen = motif_data_generator(val_path, data_augment_type=None)
 losses = []
