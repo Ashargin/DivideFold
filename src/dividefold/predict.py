@@ -177,19 +177,14 @@ def probknot_predict(seq, path_rnastructure="../RNAstructure"):
     return pred
 
 
-def ensemble_predict(seq, path_mxfold2="../mxfold2", path_linearfold="../LinearFold"):
-    pred_mx = mxfold2_predict(seq, path_mxfold2=path_mxfold2)
-    pred_lf = linearfold_predict(seq, path_linearfold=path_linearfold)
-    pred_rnaf = rnafold_predict(seq)
+def ensemble_predict(seq, predict_fncs):
+    preds = [pred_f(seq) for pred_f in predict_fncs]
+    energies = [eval_energy(seq, pred) for pred in preds]
 
-    energy_mx = eval_energy(seq, pred_mx)
-    energy_lf = eval_energy(seq, pred_lf)
-    energy_rnaf = eval_energy(seq, pred_rnaf)
+    pred_energies = list(zip(preds, energies))
+    pred_energies.sort(key=lambda x: x[1])
 
-    preds = [(pred_mx, energy_mx), (pred_lf, energy_lf), (pred_rnaf, energy_rnaf)]
-    preds.sort(key=lambda x: x[1])
-
-    return preds
+    return pred_energies
 
 
 def knotfold_predict(seq, path_knotfold="../KnotFold"):
@@ -612,6 +607,9 @@ def dividefold_predict(
     return_cuts=False,
     backend="pytorch",
 ):
+    if isinstance(predict_fnc, list):
+        predict_fnc = lambda seq: ensemble_predict(seq, predict_fncs=predict_fnc)
+
     if max_length is None:
         if (predict_fnc is None) or (predict_fnc.__name__ != "knotfold_predict"):
             max_length = 2000 if len(seq) > 2500 else 400
