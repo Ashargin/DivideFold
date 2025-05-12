@@ -27,7 +27,7 @@ In that case, the path must be specified with :
 
 ``` python
 from dividefold.predict import linearfold_predict
-sequence = "AUCG" * 1000  # example sequence
+sequence = "AUCG" * 100  # example sequence
 linearfold_prediction = linearfold_predict(sequence, path_linearfold="path/to/your/linearfold/repository")
 ```
 
@@ -41,7 +41,7 @@ The paths for [RNAfold](https://www.tbi.univie.ac.at/RNA/) and [RNAsubopt](https
 You can predict a sequence's secondary structure using the prediction function :
 ``` python
 from dividefold.predict import dividefold_predict
-sequence = "AUCG" * 1000  # example sequence
+sequence = "AUCG" * 100  # example sequence
 prediction = dividefold_predict(sequence)
 ```
 
@@ -56,7 +56,7 @@ def my_structure_prediction_function(seq):  # example prediction function
     n = len(seq)
     return "(" * (n // 2) + "." * (n % 2) + ")" * (n // 2)
 
-sequence = "AUCG" * 1000  # example sequence
+sequence = "AUCG" * 100  # example sequence
 prediction = dividefold_predict(sequence, predict_fnc=my_structure_prediction_function)
 ```
 
@@ -67,7 +67,7 @@ If the corresponding tool is installed on your system, you can use it as the pre
 ``` python
 from dividefold.predict import dividefold_predict, knotfold_predict, linearfold_predict, rnafold_predict, ufold_predict, mxfold2_predict, rnasubopt_predict, probknot_predict
 
-sequence = "AUCG" * 1000  # example sequence
+sequence = "AUCG" * 100  # example sequence
 prediction = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you want to use RNAfold as the prediction function
 ```
 
@@ -76,7 +76,7 @@ prediction = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you
 If you're only interested in the cut points, you can use :
 ``` python
 from dividefold.predict import dividefold_predict
-sequence = "AUCG" * 1000  # example sequence
+sequence = "AUCG" * 100  # example sequence
 fragments = dividefold_predict(sequence, return_cuts=True)
 ```
 This will return the cut points at the final step in the recursive cutting process. \

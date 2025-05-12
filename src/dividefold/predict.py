@@ -445,11 +445,11 @@ def dividefold_get_fragment_ranges_preds(
     max_motifs=200,
     fuse_to=None,
     struct="",
-    return_struct=True,
+    return_structure=True,
     backend="pytorch",
 ):
     if max_steps == 0 or len(seq) <= max_length and min_steps <= 0:
-        pred = predict_fnc(seq) if return_struct else "." * len(seq)
+        pred = predict_fnc(seq) if return_structure else "." * len(seq)
         frag_preds = [(np.array([[0, len(seq) - 1]]).astype(int), pred)]
         return frag_preds
 
@@ -503,7 +503,7 @@ def dividefold_get_fragment_ranges_preds(
             max_motifs=max_motifs,
             fuse_to=fuse_to,
             struct=substruct,
-            return_struct=return_struct,
+            return_structure=return_structure,
             backend=backend,
         )
 
@@ -533,7 +533,7 @@ def dividefold_get_fragment_ranges_preds(
             max_motifs=max_motifs,
             fuse_to=fuse_to,
             struct=substruct,
-            return_struct=return_struct,
+            return_structure=return_structure,
             backend=backend,
         )
 
@@ -574,7 +574,7 @@ def dividefold_predict(
     max_motifs=200,
     fuse_to=None,
     struct="",
-    return_struct=True,
+    return_structure=True,
     backend="pytorch",
 ):
     if isinstance(predict_fnc, list):
@@ -602,12 +602,13 @@ def dividefold_predict(
         max_motifs=max_motifs,
         fuse_to=fuse_to,
         struct=struct,
-        return_struct=return_struct,
+        return_structure=return_structure,
         backend=backend,
     )
 
-    if not return_struct:
-        return frag_preds
+    if not return_structure:
+        frags = [x[0] for x in frag_preds]
+        return frags
 
     def assemble_fragments(in_frag_preds):
         connex_frags = []

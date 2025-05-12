@@ -17,8 +17,8 @@ setup(
     install_requires=[
         "numpy",
         "scipy",
-        "keras>=3.2.1",
-        "tensorflow",
         "pandas",
+        "torch",
+        "keras>=3.2.1",
     ],
 )
