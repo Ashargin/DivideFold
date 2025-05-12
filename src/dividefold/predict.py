@@ -1,8 +1,6 @@
 import os
 import subprocess
-import random
 from pathlib import Path
-import time
 import datetime
 import re
 import numpy as np
@@ -26,7 +24,7 @@ DEFAULT_CUT_MODEL = Path(__file__).parents[2] / "data/models/divide_model.keras"
 default_cut_model = keras.models.load_model(DEFAULT_CUT_MODEL)
 
 
-# Prediction functions
+## Structure prediction functions
 def mxfold2_predict(seq, path_mxfold2="../mxfold2", conf="TR0-canonicals.conf"):
     # path_mxfold2 is the path to the mxfold2 repository
     # https://github.com/mxfold/mxfold2
@@ -123,30 +121,6 @@ def rnafold_predict(seq):
     return pred
 
 
-def rnasubopt_predict(seq, kmax=5, delta=0.1):
-    # https://www.tbi.univie.ac.at/RNA/
-
-    output = os.popen(f"echo {seq} | RNAsubopt --sorted").read()
-    lines = output.strip().split("\n")[1:]
-    all_preds = [
-        (pr, float(e)) for pr, e in [[x for x in l.split(" ") if x] for l in lines]
-    ]
-
-    # Filter results
-    energy = -np.inf
-    selected = 0
-    preds = []
-    for pr, e in all_preds:
-        if e >= energy + delta:
-            preds.append((pr, e))
-            energy = e
-            selected += 1
-            if selected >= kmax:
-                break
-
-    return preds
-
-
 def probknot_predict(seq, path_rnastructure="../RNAstructure"):
     # path_rnastructure is the path to the RNAstructure folder
     # ProbKnot is part of the RNAstructure package
@@ -175,16 +149,6 @@ def probknot_predict(seq, path_rnastructure="../RNAstructure"):
     os.remove(path_out)
 
     return pred
-
-
-def ensemble_predict(seq, predict_fncs):
-    preds = [pred_f(seq) for pred_f in predict_fncs]
-    energies = [eval_energy(seq, pred) for pred in preds]
-
-    pred_energies = list(zip(preds, energies))
-    pred_energies.sort(key=lambda x: x[1])
-
-    return pred_energies
 
 
 def knotfold_predict(seq, path_knotfold="../KnotFold"):
@@ -267,6 +231,17 @@ def ipknot_predict(seq):
     return pred
 
 
+def ensemble_predict(seq, predict_fncs):
+    preds = [pred_f(seq) for pred_f in predict_fncs]
+    energies = [eval_energy(seq, pred) for pred in preds]
+
+    pred_energies = list(zip(preds, energies))
+    pred_energies.sort(key=lambda x: x[1])
+
+    return pred_energies
+
+
+## Partition functions
 def oracle_get_cuts(struct):
     if len(struct) <= 3:
         return [], True
@@ -459,11 +434,7 @@ def dividefold_get_cuts(
     return peaks.tolist(), outer
 
 
-def linearfold_get_cuts(seq):
-    preds = linearfold_predict(seq)
-    return oracle_get_cuts(preds)
-
-
+## DivideFold main prediction functions
 def dividefold_get_fragment_ranges_preds(
     seq,
     max_length=1000,
@@ -474,11 +445,11 @@ def dividefold_get_fragment_ranges_preds(
     max_motifs=200,
     fuse_to=None,
     struct="",
-    return_cuts=False,
+    return_struct=True,
     backend="pytorch",
 ):
     if max_steps == 0 or len(seq) <= max_length and min_steps <= 0:
-        pred = predict_fnc(seq) if not return_cuts else "." * len(seq)
+        pred = predict_fnc(seq) if return_struct else "." * len(seq)
         frag_preds = [(np.array([[0, len(seq) - 1]]).astype(int), pred)]
         return frag_preds
 
@@ -532,7 +503,7 @@ def dividefold_get_fragment_ranges_preds(
             max_motifs=max_motifs,
             fuse_to=fuse_to,
             struct=substruct,
-            return_cuts=return_cuts,
+            return_struct=return_struct,
             backend=backend,
         )
 
@@ -562,7 +533,7 @@ def dividefold_get_fragment_ranges_preds(
             max_motifs=max_motifs,
             fuse_to=fuse_to,
             struct=substruct,
-            return_cuts=return_cuts,
+            return_struct=return_struct,
             backend=backend,
         )
 
@@ -603,8 +574,7 @@ def dividefold_predict(
     max_motifs=200,
     fuse_to=None,
     struct="",
-    struct_to_print_fscores="",
-    return_cuts=False,
+    return_struct=True,
     backend="pytorch",
 ):
     if isinstance(predict_fnc, list):
@@ -621,8 +591,6 @@ def dividefold_predict(
 
     if struct:
         struct = optimize_pseudoknots(struct)
-    if struct_to_print_fscores:
-        struct_to_print_fscores = optimize_pseudoknots(struct_to_print_fscores)
 
     frag_preds = dividefold_get_fragment_ranges_preds(
         seq,
@@ -634,11 +602,11 @@ def dividefold_predict(
         max_motifs=max_motifs,
         fuse_to=fuse_to,
         struct=struct,
-        return_cuts=return_cuts,
+        return_struct=return_struct,
         backend=backend,
     )
 
-    if return_cuts:
+    if not return_struct:
         return frag_preds
 
     def assemble_fragments(in_frag_preds):
@@ -706,11 +674,6 @@ def dividefold_predict(
         )
         all_global_preds, global_energies = zip(*pred_energies)
         global_pred = all_global_preds[0]
-
-        if struct_to_print_fscores:
-            for p, e in zip(all_global_preds, global_energies):
-                _, _, fscore, _ = get_structure_scores(struct_to_print_fscores, p)
-                print((fscore, e))
 
     else:  # single prediction function
         global_pred = assemble_fragments(frag_preds)

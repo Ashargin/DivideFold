@@ -215,51 +215,6 @@ def seq2kmer(seq, k):
 
 
 ## Data augmentations
-def apply_mutation(seq, struct, mutation_proba=1.0, struct_deletion_proba=0.0):
-    struct_no_pk = re.sub(r"[^\(\)\.]", ".", struct)
-    pairs = struct_to_pairs(struct_no_pk)
-
-    # Sequence mutation
-    mutations = [
-        ("A", "U"),
-        ("U", "A"),  # Watson-Crick
-        ("G", "C"),
-        ("C", "G"),  # Watson-Crick
-        ("G", "U"),
-        ("U", "G"),  # Wobble
-    ]
-    augmented_seq = ["" for _ in range(len(seq))]
-    for i, j in enumerate(pairs):
-        j -= 1
-        if j < 0:
-            augmented_seq[i] = seq[i]
-        elif i < j:
-            if np.random.random() < mutation_proba:
-                mut_1, mut_2 = mutations[np.random.randint(len(mutations))]
-                augmented_seq[i] = mut_1
-                augmented_seq[j] = mut_2
-            else:
-                augmented_seq[i] = seq[i]
-                augmented_seq[j] = seq[j]
-    augmented_seq = "".join(augmented_seq)
-
-    # Structure deletion
-    for i, j in enumerate(pairs):
-        j -= 1
-        if i < j:
-            if np.random.random() < struct_deletion_proba:
-                pairs[i] = 0
-                pairs[j] = 0
-    augmented_struct = pairs_to_struct(pairs)
-    augmented_struct = list(augmented_struct)
-    for i, c in enumerate(struct):
-        if c not in [".", "(", ")"]:
-            augmented_struct[i] = c
-    augmented_struct = "".join(augmented_struct)
-
-    return augmented_seq, augmented_struct
-
-
 def augment_deletion(seq, struct, min_len=1, max_len=20):
     max_len = min(max_len, len(seq) - 1)
     min_len = min(min_len, max_len)

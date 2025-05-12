@@ -5,7 +5,6 @@ from pathlib import Path
 
 from dividefold.utils import (
     format_data,
-    apply_mutation,
     augment,
 )
 from dividefold.models.cnn_1d import CNN1D
@@ -94,12 +93,12 @@ for i in range(EPOCHS):
         validation_steps=400,
         epochs=1,
     )
-    this_loss = round(100000 * np.mean(history.history["val_loss"]))
+    epoch_val_loss = round(100000 * np.mean(history.history["val_loss"]))
     model.save(Path(__file__).parents[1] / "data/models/trained_epoch{i+1}.keras")
-    losses.append(this_loss)
+    losses.append(epoch_val_loss)
     print(f"Losses (epoch 1 to {i+1}):")
     print(losses)
-    if min(losses) > 1000:
+    if min(losses) > 1000 and i > 0:
         print(
-            "WARNING: if after 2 or 3 epochs, the loss has not gone below 1000, the model might be stale and failed in finding an optimization path. If this happens repeatedly, decrease MAX_DIL for an easier optimization path. Performances might decrease slightly."
+            "WARNING: if after 2 or 3 epochs, the loss has not gone below 1000, the model might be stale and have failed in finding an optimization path. If this happens repeatedly, decrease MAX_DIL for an easier optimization path. Performances might decrease slightly."
         )
