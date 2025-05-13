@@ -339,24 +339,19 @@ def dividefold_get_cuts(
     cut_model=default_cut_model,
     max_motifs=200,
     fuse_to=None,
-    backend="pytorch",
 ):
     seq_mat = format_data(seq, max_motifs=max_motifs)[np.newaxis, :, :]
 
-    # Get numpy array from pytorch backend
+    # Get numpy array from PyTorch or Tensorflow backend
     cuts = None
-    if backend == "pytorch":
-        try:
-            cuts = cut_model(seq_mat).detach().cpu().numpy().ravel()
-        except AttributeError:
-            raise ValueError(
-                'It seems like you are using a Tensorflow backend, but the default expected backend is PyTorch. Please try again using backend="tensorflow".'
-            )
+    backend = keras.backend.backend()
+    if backend == "torch":
+        cuts = cut_model(seq_mat).detach().cpu().numpy().ravel()
     elif backend == "tensorflow":
         cuts = cut_model(seq_mat).numpy().ravel()
     else:
         raise ValueError(
-            f'The backend argument should be either "pytorch" or "tensorflow". Got: {backend}.'
+            f'The Keras backend should be either PyTorch" or Tensorflow. Found: {backend}.'
         )
     min_height = min(min_height, max(cuts))
 
@@ -446,7 +441,6 @@ def dividefold_get_fragment_ranges_preds(
     fuse_to=None,
     struct="",
     return_structure=True,
-    backend="pytorch",
 ):
     if max_steps == 0 or len(seq) <= max_length and min_steps <= 0:
         pred = predict_fnc(seq) if return_structure else "." * len(seq)
@@ -461,7 +455,6 @@ def dividefold_get_fragment_ranges_preds(
             cut_model=cut_model,
             max_motifs=max_motifs,
             fuse_to=fuse_to,
-            backend=backend,
         )
 
     # Cut sequence into subsequences
@@ -504,7 +497,6 @@ def dividefold_get_fragment_ranges_preds(
             fuse_to=fuse_to,
             struct=substruct,
             return_structure=return_structure,
-            backend=backend,
         )
 
         for _range, pred in this_frag_preds:
@@ -534,7 +526,6 @@ def dividefold_get_fragment_ranges_preds(
             fuse_to=fuse_to,
             struct=substruct,
             return_structure=return_structure,
-            backend=backend,
         )
 
         sep = right_b_1 - left_b_1
@@ -575,7 +566,7 @@ def dividefold_predict(
     fuse_to=None,
     struct="",
     return_structure=True,
-    backend="pytorch",
+    return_fragments=False,
 ):
     if isinstance(predict_fnc, list):
         predict_fnc = lambda seq: ensemble_predict(seq, predict_fncs=predict_fnc)
@@ -588,6 +579,11 @@ def dividefold_predict(
 
     if max_steps is not None and max_steps < min_steps:
         raise ValueError("max_steps must be greater than min_steps.")
+
+    if not return_structure and not return_fragments:
+        raise ValueError(
+            "Either return_structure or return_fragments should be True, or both."
+        )
 
     if struct:
         struct = optimize_pseudoknots(struct)
@@ -603,12 +599,11 @@ def dividefold_predict(
         fuse_to=fuse_to,
         struct=struct,
         return_structure=return_structure,
-        backend=backend,
     )
 
+    fragments = [x[0] + 1 for x in frag_preds]
     if not return_structure:
-        frags = [x[0] for x in frag_preds]
-        return frags
+        return fragments
 
     def assemble_fragments(in_frag_preds):
         connex_frags = []
@@ -634,6 +629,7 @@ def dividefold_predict(
                     yield [pred] + f
         return
 
+    global_pred = None
     if isinstance(frag_preds[0][1], list):  # multiple predictions function
         ranges, multipreds = zip(*frag_preds)
         multipreds = [
@@ -679,4 +675,7 @@ def dividefold_predict(
     else:  # single prediction function
         global_pred = assemble_fragments(frag_preds)
 
-    return global_pred
+    if not return_fragments:
+        return global_pred
+
+    return fragments, global_pred
