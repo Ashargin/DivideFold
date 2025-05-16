@@ -6,9 +6,9 @@ DivideFold aims to partition the sequence in a way that the structure is conserv
 
 ## Requirements
 
-Python >= 3.9
-Keras >= 3.2.1
-PyTorch >= 2.5.0 or Tensorflow >= 2.16.1 as the Keras backend
+Python (>= 3.9)
+Keras (>= 3.2.1)
+PyTorch (>= 2.5.0) or Tensorflow (>= 2.16.1) as the Keras backend
 
 ## Installation
 
@@ -83,5 +83,11 @@ fragments = dividefold_predict(sequence, return_fragments=True, return_structure
 ```
 In this case, only the partition will be computed, and no structure prediction tool needs to be installed as none will be used.
 
+## Web server
+We provide a web server at [https://evryrna.ibisc.univ-evry.fr/evryrna/dividefold/webserver](https://evryrna.ibisc.univ-evry.fr/evryrna/dividefold/webserver).
+
 ## Data availability
 All data used in our training and experiments can be found in `data/data_structures/`.
+
+## References
+* Omnes, L., Angel, E., Bartet, P., et al.: A Divide-and-Conquer Approach Based on Deep Learning for Long RNA Secondary Structure Prediction: Focus on Pseudoknots Identification. PLOS ONE 20.4 (2025). [https://doi.org/10.1371/journal.pone.0314837](https://doi.org/10.1371/journal.pone.0314837)
