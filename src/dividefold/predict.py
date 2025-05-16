@@ -33,6 +33,11 @@ DEFAULT_CUT_MODEL = Path(__file__).parents[2] / "data/models/divide_model.keras"
 # Load cut model
 default_cut_model = keras.models.load_model(DEFAULT_CUT_MODEL)
 
+# Create an empty directory for temporary files
+temp_dir = Path("temp")
+if not os.path.exists(temp_dir):
+    os.mkdir(temp_dir)
+
 
 ## Structure prediction functions
 def mxfold2_predict(seq, dirpath="../mxfold2", conf="TR0-canonicals.conf"):
@@ -40,16 +45,23 @@ def mxfold2_predict(seq, dirpath="../mxfold2", conf="TR0-canonicals.conf"):
     # https://github.com/mxfold/mxfold2
 
     dirpath = Path(dirpath)
+    if not os.path.exists(dirpath):
+        raise ValueError(f"MXfold2 was not found at {dirpath}. Please install MXfold2 at {dirpath}, or specify the MXfold2 directory with dirpath=path/to/mxfold2.")
 
     suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
-    path_in = f"temp_mxfold2_in_{suffix}.fa"
+    path_in = temp_dir / f"temp_mxfold2_in_{suffix}.fa"
     with open(path_in, "w") as f:
         f.write(f">0\n{seq}\n")
 
     res = os.popen(
         f"mxfold2 predict @{dirpath / 'models' / conf} {path_in}"
     ).read()
-    pred = res.split("\n")[2].split(" ")[0]
+    try:
+        pred = res.split("\n")[2].split(" ")[0]
+    except IndexError:
+        raise RuntimeError(
+            f"MXfold2 could not run properly. There could be an issue with your MXfold2 installation. Please verify that MXfold2 is correctly installed at {dirpath}, or specify another directory with dirpath=path/to/mxfold2."
+        )
 
     os.remove(path_in)
 
@@ -75,6 +87,8 @@ def ufold_predict(seq, dirpath="../UFold"):
     seq = "".join(seq_bases)
 
     dirpath = Path(dirpath)
+    if not os.path.exists(dirpath):
+        raise ValueError(f"UFold was not found at {dirpath}. Please install UFold at {dirpath}, or specify the UFold directory with dirpath=path/to/UFold.")
 
     # prepare input file
     suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
@@ -85,7 +99,13 @@ def ufold_predict(seq, dirpath="../UFold"):
         f.write(f">{temp_rna_name}\n{seq}\n")
 
     # predict
-    subprocess.run(["python", "ufold_predict.py"], cwd=dirpath)
+    res = subprocess.run(["python", "ufold_predict.py"], cwd=dirpath)
+
+    os.remove(path_in)
+    if res.returncode != 0:
+        raise RuntimeError(
+            f"UFold could not run properly. There could be an issue with your UFold installation. Please verify that UFold is correctly installed at {dirpath}, or specify another directory with dirpath=path/to/UFold."
+        )
 
     # read output
     with open(path_out, "r") as f:
@@ -97,7 +117,6 @@ def ufold_predict(seq, dirpath="../UFold"):
     pairs = np.array([j if pairs[j - 1] - 1 == i else 0 for i, j in enumerate(pairs)])
     pred = pairs_to_struct(pairs)
 
-    os.remove(path_in)
     os.remove(path_out)
 
     return pred
@@ -108,16 +127,23 @@ def linearfold_predict(seq, dirpath="../LinearFold"):
     # https://github.com/LinearFold/LinearFold
 
     dirpath = Path(dirpath)
+    if not os.path.exists(dirpath):
+        raise ValueError(f"LinearFold was not found at {dirpath}. Please install LinearFold at {dirpath}, or specify the LinearFold directory with dirpath=path/to/LinearFold.")
 
     # predict
     pred = os.popen(f"echo {seq} | {dirpath / 'linearfold'}").read()
 
     # read output
-    pred = (
-        pred.split("\n")[1].split()[0]
-        if not pred.startswith("Unrecognized")
-        else "." * len(seq)
-    )
+    try:
+        pred = (
+            pred.split("\n")[1].split()[0]
+            if not pred.startswith("Unrecognized")
+            else "." * len(seq)
+        )
+    except IndexError:
+        raise RuntimeError(
+            f"LinearFold could not run properly. There could be an issue with your LinearFold installation. Please verify that LinearFold is correctly installed at {dirpath}, or specify another directory with dirpath=path/to/LinearFold."
+        )
 
     return pred
 
@@ -126,7 +152,12 @@ def rnafold_predict(seq):
     # https://www.tbi.univie.ac.at/RNA/
 
     output = os.popen(f"echo {seq} | RNAfold").read()
-    pred = output.split("\n")[1].split(" ")[0]
+    try:
+        pred = output.split("\n")[1].split(" ")[0]
+    except IndexError:
+        raise RuntimeError(
+            f"RNAfold could not run properly. There could be an issue with your RNAfold installation. Please verify that RNAfold is correctly installed."
+        )
 
     return pred
 
@@ -137,11 +168,13 @@ def probknot_predict(seq, dirpath="../RNAstructure"):
     # https://rna.urmc.rochester.edu/RNAstructure.html
 
     dirpath = Path(dirpath)
+    if not os.path.exists(dirpath):
+        raise ValueError(f"RNAstructure was not found at {dirpath}. Please install RNAstructure at {dirpath}, or specify the RNAstructure directory with dirpath=path/to/RNAstructure.")
 
     suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
-    path_in = f"temp_probknot_in_{suffix}.seq"
-    path_middle = f"temp_probknot_middle_{suffix}.ct"
-    path_out = f"temp_probknot_out_{suffix}.txt"
+    path_in = temp_dir / f"temp_probknot_in_{suffix}.seq"
+    path_middle = temp_dir / f"temp_probknot_middle_{suffix}.ct"
+    path_out = temp_dir / f"temp_probknot_out_{suffix}.txt"
     seq = re.sub("[^AUCG]", "N", seq)
     with open(path_in, "w") as f:
         f.write(seq)
@@ -152,7 +185,12 @@ def probknot_predict(seq, dirpath="../RNAstructure"):
     os.popen(
         f"{dirpath / 'exe' / 'ct2dot'} {path_middle} -1 {path_out}"
     ).read()
-    pred = open(path_out, "r").read().split("\n")[2]
+    try:
+        pred = open(path_out, "r").read().split("\n")[2]
+    except IndexError:
+        raise RuntimeError(
+            f"ProbKnot could not run properly. There could be an issue with your RNAstructure installation. Please verify that RNAstructure is correctly installed at {dirpath}, or specify another directory with dirpath=path/to/RNAstructure."
+        )
 
     os.remove(path_in)
     os.remove(path_middle)
@@ -169,6 +207,8 @@ def knotfold_predict(seq, dirpath="../KnotFold"):
         return "."
 
     dirpath = Path(dirpath)
+    if not os.path.exists(dirpath):
+        raise ValueError(f"KnotFold was not found at {dirpath}. Please install KnotFold at {dirpath}, or specify the KnotFold directory with dirpath=path/to/KnotFold.")
 
     # prepare input file
     suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
@@ -186,8 +226,8 @@ def knotfold_predict(seq, dirpath="../KnotFold"):
     # read output
     os.remove(dirpath / path_in)
     if res.returncode != 0:
-        raise MemoryError(
-            f"The KnotFold script could not run properly. There could be an issue with your KnotFold installation. Try looking in the traceback from the KnotFold script for more information."
+        raise RuntimeError(
+            f"KnotFold could not run properly. There could be an issue with your KnotFold installation. Please verify that KnotFold is correctly installed at {dirpath}, or specify another directory with dirpath=path/to/KnotFold."
         )
     with open(dirpath / path_out, "r") as f:
         pred_txt = f.read()
@@ -212,7 +252,12 @@ def pkiss_predict(seq):
     seq = re.sub("[^AUCG]", "", seq)
 
     res = os.popen(f"pKiss --mode=mfe {seq}").read()
-    sub_pred = res.split("\n")[2].split(" ")[-1]
+    try:
+        sub_pred = res.split("\n")[2].split(" ")[-1]
+    except IndexError:
+        raise RuntimeError(
+            f"pKiss could not run properly. There could be an issue with your pKiss installation. Please verify that pKiss is correctly installed."
+        )
 
     i = 0
     for p in sub_pred:
@@ -229,12 +274,15 @@ def ipknot_predict(seq):
     # https://github.com/satoken/ipknot
 
     suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
-    path_in = f"temp_ipknot_in_{suffix}.fa"
+    path_in = temp_dir / f"temp_ipknot_in_{suffix}.fa"
     with open(path_in, "w") as f:
         f.write(f">0\n{seq}\n")
 
     res = os.popen(f"ipknot {path_in}").read()
-    pred = res.split("\n")[2]
+    try:
+        pred = res.split("\n")[2]
+    except IndexError:
+        raise RuntimeError(f"IPknot could not run properly. There could be an issue with your IPknot installation. Please verify that IPknot is correctly installed.")
 
     os.remove(path_in)
 
