@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "DivideFold"
+version = "1.0"
+description = "Secondary structure prediction including pseudoknots for long RNAs using a recursive cutting method"
+authors = [
+    {name = "Loïc Omnes", email = "loic.omnes@gmail.com"},
+]
+urls = {Homepage = "https://github.com/Ashargin/DivideFold" }
+keywords = [
+    "long RNA",
+    "pseudoknots",
+    "secondary structure prediction",
+    "deep learning",
+    "divide and conquer"
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "torch",
+    "keras>=3.2.1"
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["dividefold"]
