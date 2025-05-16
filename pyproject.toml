@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -22,14 +22,12 @@ dependencies = [
     "numpy",
     "scipy",
     "pandas",
-    "torch",
     "keras>=3.2.1"
 ]
 
 [project.optional-dependencies]
-dev = [
-    "black",
-]
+torch = ["torch>=2.5.0"]
+tensorflow = ["tensorflow>=2.16.1"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
