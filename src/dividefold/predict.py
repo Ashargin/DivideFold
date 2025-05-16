@@ -7,6 +7,16 @@ import numpy as np
 import scipy.signal
 import itertools
 
+import importlib.util
+has_torch = importlib.util.find_spec("torch") is not None
+has_tf = importlib.util.find_spec("tensorflow") is not None
+if not has_torch and not has_tf:
+    raise ImportError("Neither PyTorch nor TensorFlow is installed. Please install at least one backend.")
+elif has_torch and not has_tf:
+    os.environ["KERAS_BACKEND"] = "torch"
+elif has_tf and not has_torch:
+    os.environ["KERAS_BACKEND"] = "tensorflow"
+
 import keras
 
 from dividefold.utils import (
