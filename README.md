@@ -1,12 +1,14 @@
 # DivideFold
 
 This repository contains the DivideFold model for predicting the secondary structure of long RNAs. \
-The goal of this method is to recursively partition the input sequence into smaller fragments and use an existing structure prediction tool to predict the secondary structures of the fragments. Then, the predicted structures are reassembled to form the global structure prediction for the input sequence. \
+The goal of this method is to recursively partition the input sequence into smaller fragments and use an existing structure prediction tool on the fragments. Then, the predicted structures are reassembled to form the global structure prediction for the input sequence. \
 DivideFold aims to partition the sequence in a way that the structure is conserved as much as possible.
 
 ## Requirements
 
-DivideFold requires Python >= 3.9, Keras >= 3.2.1, and either PyTorch >= 2.5.0 or Tensorflow >= 2.16.1 as the Keras backend.
+Python >= 3.9
+Keras >= 3.2.1
+PyTorch >= 2.5.0 or Tensorflow >= 2.16.1 as the Keras backend
 
 ## Installation
 
@@ -47,7 +49,7 @@ If the corresponding tool is installed on your system, you can use it as the str
 ``` python
 from dividefold.predict import dividefold_predict, knotfold_predict, ipknot_predict, pkiss_predict, probknot_predict, rnafold_predict, linearfold_predict, mxfold2_predict, ufold_predict
 sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
-prediction = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you want to use RNAfold as the prediction function
+prediction = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you want to use RNAfold as the structure prediction function
 ```
 
 ### Using a custom structure prediction function
@@ -56,7 +58,7 @@ It is also possible to use any custom structure prediction function on the fragm
 ``` python
 from dividefold.predict import dividefold_predict
 
-def my_structure_prediction_function(seq):  # example prediction function
+def my_structure_prediction_function(seq):  # example structure prediction function
     n = len(seq)
     return "(" * (n // 2) + "." * (n % 2) + ")" * (n // 2)
 
