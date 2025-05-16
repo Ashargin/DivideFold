@@ -31,7 +31,7 @@ def mxfold2_predict(seq, dirpath="../mxfold2", conf="TR0-canonicals.conf"):
 
     dirpath = Path(dirpath)
 
-    suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
+    suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
     path_in = f"temp_mxfold2_in_{suffix}.fa"
     with open(path_in, "w") as f:
         f.write(f">0\n{seq}\n")
@@ -67,7 +67,7 @@ def ufold_predict(seq, dirpath="../UFold"):
     dirpath = Path(dirpath)
 
     # prepare input file
-    suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
+    suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
     temp_rna_name = f"TEMP_RNA_NAME_{suffix}"
     path_in = dirpath / "data" / "input.txt"
     path_out = dirpath / "results" / "save_ct_file" / f"{temp_rna_name}.ct"
@@ -128,7 +128,7 @@ def probknot_predict(seq, dirpath="../RNAstructure"):
 
     dirpath = Path(dirpath)
 
-    suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
+    suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
     path_in = f"temp_probknot_in_{suffix}.seq"
     path_middle = f"temp_probknot_middle_{suffix}.ct"
     path_out = f"temp_probknot_out_{suffix}.txt"
@@ -161,7 +161,7 @@ def knotfold_predict(seq, dirpath="../KnotFold"):
     dirpath = Path(dirpath)
 
     # prepare input file
-    suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
+    suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
     temp_rna_name = f"TEMP_RNA_NAME_{suffix}"
     path_in = f"temp_knotfold_in_{suffix}.fasta"
     path_out = f"{temp_rna_name}.bpseq"
@@ -218,7 +218,7 @@ def pkiss_predict(seq):
 def ipknot_predict(seq):
     # https://github.com/satoken/ipknot
 
-    suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
+    suffix = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S_%f")
     path_in = f"temp_ipknot_in_{suffix}.fa"
     with open(path_in, "w") as f:
         f.write(f">0\n{seq}\n")
