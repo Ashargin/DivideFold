@@ -562,6 +562,7 @@ def dividefold_predict(
     multipred_kmax=20,
     cut_model=default_cut_model,
     predict_fnc=knotfold_predict,
+    dirpath=None,
     max_motifs=200,
     fuse_to=None,
     struct="",
@@ -570,6 +571,8 @@ def dividefold_predict(
 ):
     if isinstance(predict_fnc, list):
         predict_fnc = lambda seq: ensemble_predict(seq, predict_fncs=predict_fnc)
+    if dirpath is not None:
+        predict_fnc = lambda seq: predict_fnc(seq, dirpath=dirpath)
 
     if max_steps is not None and max_steps < min_steps:
         raise ValueError("max_steps must be greater than min_steps.")
