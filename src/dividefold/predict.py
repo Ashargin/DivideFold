@@ -177,7 +177,7 @@ def knotfold_predict(seq, dirpath="../KnotFold"):
     os.remove(dirpath / path_in)
     if res.returncode != 0:
         raise MemoryError(
-            f"The KnotFold script could not run properly. The input sequence may be too long. Avoid sequences longer than 2000 nucleotides when using KnotFold. If the sequence is shorter, then something else in the KnotFold script may have caused this error. Look in the traceback from the KnotFold script for more information."
+            f"The KnotFold script could not run properly. There could be an issue with your KnotFold installation. Try looking in the traceback from the KnotFold script for more information."
         )
     with open(dirpath / path_out, "r") as f:
         pred_txt = f.read()
@@ -432,7 +432,7 @@ def dividefold_get_cuts(
 ## DivideFold main prediction functions
 def dividefold_get_fragment_ranges_preds(
     seq,
-    max_frag_length=1000,
+    max_fragment_length=1000,
     max_steps=None,
     min_steps=0,
     cut_model=default_cut_model,
@@ -442,7 +442,7 @@ def dividefold_get_fragment_ranges_preds(
     struct="",
     return_structure=True,
 ):
-    if max_steps == 0 or len(seq) <= max_frag_length and min_steps <= 0:
+    if max_steps == 0 or len(seq) <= max_fragment_length and min_steps <= 0:
         pred = predict_fnc(seq) if return_structure else "." * len(seq)
         frag_preds = [(np.array([[0, len(seq) - 1]]).astype(int), pred)]
         return frag_preds
@@ -488,7 +488,7 @@ def dividefold_get_fragment_ranges_preds(
             assert substruct.count("(") == substruct.count(")")
         this_frag_preds = dividefold_get_fragment_ranges_preds(
             subseq,
-            max_frag_length=max_frag_length,
+            max_fragment_length=max_fragment_length,
             max_steps=max_steps,
             min_steps=min_steps,
             cut_model=cut_model,
@@ -517,7 +517,7 @@ def dividefold_get_fragment_ranges_preds(
             assert substruct.count("(") == substruct.count(")")
         this_frag_preds = dividefold_get_fragment_ranges_preds(
             subseq,
-            max_frag_length=max_frag_length,
+            max_fragment_length=max_fragment_length,
             max_steps=max_steps,
             min_steps=min_steps,
             cut_model=cut_model,
@@ -556,7 +556,7 @@ def dividefold_get_fragment_ranges_preds(
 
 def dividefold_predict(
     seq,
-    max_frag_length=1000,
+    max_fragment_length=1000,
     max_steps=None,
     min_steps=0,
     multipred_kmax=20,
@@ -584,7 +584,7 @@ def dividefold_predict(
 
     frag_preds = dividefold_get_fragment_ranges_preds(
         seq,
-        max_frag_length=max_frag_length,
+        max_fragment_length=max_fragment_length,
         max_steps=max_steps,
         min_steps=min_steps,
         cut_model=cut_model,

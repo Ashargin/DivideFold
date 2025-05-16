@@ -73,12 +73,12 @@ prediction = dividefold_predict(sequence, predict_fnc=my_structure_prediction_fu
 
 An important parameter is the maximum partition length. A lower value will lead to the sequence being partitioned more deeply into smaller fragments. \
 The fragments can be up to 1000 nc long by default, but if the structure prediction tool struggles to accurately process fragments of this size, it could be better to yield smaller fragments. \
-This can be specified with the `max_frag_length` argument:
+This can be specified with the `max_fragment_length` argument:
 ``` python
 from dividefold.predict import dividefold_predict
 import numpy as np
 sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
-prediction = dividefold_predict(sequence, max_frag_length=200)  # if you want fragments to be smaller than 200 nc
+prediction = dividefold_predict(sequence, max_fragment_length=200)  # if you want fragments to be smaller than 200 nc
 ```
 
 ### Obtaining fragments coordinates
