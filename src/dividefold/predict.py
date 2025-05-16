@@ -432,7 +432,7 @@ def dividefold_get_cuts(
 ## DivideFold main prediction functions
 def dividefold_get_fragment_ranges_preds(
     seq,
-    max_length=1000,
+    max_frag_length=1000,
     max_steps=None,
     min_steps=0,
     cut_model=default_cut_model,
@@ -442,7 +442,7 @@ def dividefold_get_fragment_ranges_preds(
     struct="",
     return_structure=True,
 ):
-    if max_steps == 0 or len(seq) <= max_length and min_steps <= 0:
+    if max_steps == 0 or len(seq) <= max_frag_length and min_steps <= 0:
         pred = predict_fnc(seq) if return_structure else "." * len(seq)
         frag_preds = [(np.array([[0, len(seq) - 1]]).astype(int), pred)]
         return frag_preds
@@ -488,7 +488,7 @@ def dividefold_get_fragment_ranges_preds(
             assert substruct.count("(") == substruct.count(")")
         this_frag_preds = dividefold_get_fragment_ranges_preds(
             subseq,
-            max_length=max_length,
+            max_frag_length=max_frag_length,
             max_steps=max_steps,
             min_steps=min_steps,
             cut_model=cut_model,
@@ -517,7 +517,7 @@ def dividefold_get_fragment_ranges_preds(
             assert substruct.count("(") == substruct.count(")")
         this_frag_preds = dividefold_get_fragment_ranges_preds(
             subseq,
-            max_length=max_length,
+            max_frag_length=max_frag_length,
             max_steps=max_steps,
             min_steps=min_steps,
             cut_model=cut_model,
@@ -556,7 +556,7 @@ def dividefold_get_fragment_ranges_preds(
 
 def dividefold_predict(
     seq,
-    max_length=None,
+    max_frag_length=1000,
     max_steps=None,
     min_steps=0,
     multipred_kmax=20,
@@ -571,12 +571,6 @@ def dividefold_predict(
     if isinstance(predict_fnc, list):
         predict_fnc = lambda seq: ensemble_predict(seq, predict_fncs=predict_fnc)
 
-    if max_length is None:
-        if (predict_fnc is None) or (predict_fnc.__name__ != "knotfold_predict"):
-            max_length = 2000 if len(seq) > 2500 else 400
-        else:
-            max_length = 1000
-
     if max_steps is not None and max_steps < min_steps:
         raise ValueError("max_steps must be greater than min_steps.")
 
@@ -590,7 +584,7 @@ def dividefold_predict(
 
     frag_preds = dividefold_get_fragment_ranges_preds(
         seq,
-        max_length=max_length,
+        max_frag_length=max_frag_length,
         max_steps=max_steps,
         min_steps=min_steps,
         cut_model=cut_model,

@@ -37,6 +37,7 @@ The paths for [IPknot](https://github.com/satoken/ipknot), [pKiss](https://bibis
 You can predict a sequence's secondary structure using the prediction function:
 ``` python
 from dividefold.predict import dividefold_predict
+import numpy as np
 sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
 prediction = dividefold_predict(sequence)
 ```
@@ -48,6 +49,7 @@ We also provide wrappers for [IPknot](https://github.com/satoken/ipknot), [pKiss
 If the corresponding tool is installed on your system, you can use it as the structure prediction function for DivideFold:
 ``` python
 from dividefold.predict import dividefold_predict, knotfold_predict, ipknot_predict, pkiss_predict, probknot_predict, rnafold_predict, linearfold_predict, mxfold2_predict, ufold_predict
+import numpy as np
 sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
 prediction = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you want to use RNAfold as the structure prediction function
 ```
@@ -57,6 +59,7 @@ prediction = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you
 It is also possible to use any custom structure prediction function on the fragments after partition:
 ``` python
 from dividefold.predict import dividefold_predict
+import numpy as np
 
 def my_structure_prediction_function(seq):  # example structure prediction function
     n = len(seq)
@@ -66,11 +69,24 @@ sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example
 prediction = dividefold_predict(sequence, predict_fnc=my_structure_prediction_function)
 ```
 
+### Specifying maximum fragment length (partition depth) 
+
+An important parameter is the maximum partition length. A lower value will lead to the sequence being partitioned more deeply into smaller fragments. \
+The fragments can be up to 1000 nc long by default, but if the structure prediction tool struggles to accurately process fragments of this size, it could be better to yield smaller fragments. \
+This can be specified with the `max_frag_length` argument:
+``` python
+from dividefold.predict import dividefold_predict
+import numpy as np
+sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
+prediction = dividefold_predict(sequence, max_frag_length=200)  # if you want fragments to be smaller than 200 nc
+```
+
 ### Obtaining fragments coordinates
 
 To obtain the fragments resulting from DivideFold's partition, use `return_fragments=True`:
 ``` python
 from dividefold.predict import dividefold_predict
+import numpy as np
 sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
 fragments, prediction = dividefold_predict(sequence, return_fragments=True)
 ```
@@ -78,6 +94,7 @@ fragments, prediction = dividefold_predict(sequence, return_fragments=True)
 If you're only interested in the fragments, and not in predicting the secondary structure, you can use `return_structure=False`:
 ``` python
 from dividefold.predict import dividefold_predict
+import numpy as np
 sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
 fragments = dividefold_predict(sequence, return_fragments=True, return_structure=False)
 ```
