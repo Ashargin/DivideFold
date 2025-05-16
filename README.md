@@ -6,8 +6,8 @@ DivideFold aims to partition the sequence in a way that the structure is conserv
 
 ## Requirements
 
-Python (>= 3.9)
-Keras (>= 3.2.1)
+Python (>= 3.9) \
+Keras (>= 3.2.1) \
 PyTorch (>= 2.5.0) or Tensorflow (>= 2.16.1) as the Keras backend
 
 ## Installation
