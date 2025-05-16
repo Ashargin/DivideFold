@@ -9,7 +9,7 @@ DivideFold aims to partition the sequence in a way that the structure is conserv
 - `python>=3.9`
 - `keras>=3.2.1`
 - Either `torch>=2.5.0` or `tensorflow>=2.16.1` as the Keras backend
-- Other scientific packages like `numpy`, `scipy`, and `pandas` are included automatically
+- Other scientific packages: `numpy`, `scipy`, `pandas`
 
 ## Installation
 
