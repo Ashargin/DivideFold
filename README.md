@@ -19,6 +19,7 @@ python3 -m venv myenv
 source myenv/bin/activate
 pip install -e .
 ```
+*If `pip install -e .` fails, make sure that `pip` is up to date.*
 
 We also recommend that you install [KnotFold](https://github.com/gongtiansu/KnotFold) since it is the structure prediction function that we use by default.
 
