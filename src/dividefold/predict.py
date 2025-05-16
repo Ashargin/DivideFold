@@ -25,11 +25,11 @@ default_cut_model = keras.models.load_model(DEFAULT_CUT_MODEL)
 
 
 ## Structure prediction functions
-def mxfold2_predict(seq, path_mxfold2="../mxfold2", conf="TR0-canonicals.conf"):
-    # path_mxfold2 is the path to the mxfold2 repository
+def mxfold2_predict(seq, dirpath="../mxfold2", conf="TR0-canonicals.conf"):
+    # dirpath is the path to the mxfold2 repository
     # https://github.com/mxfold/mxfold2
 
-    path_mxfold2 = Path(path_mxfold2)
+    dirpath = Path(dirpath)
 
     suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
     path_in = f"temp_mxfold2_in_{suffix}.fa"
@@ -37,7 +37,7 @@ def mxfold2_predict(seq, path_mxfold2="../mxfold2", conf="TR0-canonicals.conf"):
         f.write(f">0\n{seq}\n")
 
     res = os.popen(
-        f"mxfold2 predict @{path_mxfold2 / 'models' / conf} {path_in}"
+        f"mxfold2 predict @{dirpath / 'models' / conf} {path_in}"
     ).read()
     pred = res.split("\n")[2].split(" ")[0]
 
@@ -46,8 +46,8 @@ def mxfold2_predict(seq, path_mxfold2="../mxfold2", conf="TR0-canonicals.conf"):
     return pred
 
 
-def ufold_predict(seq, path_ufold="../UFold"):
-    # path_ufold is the path to the UFold repository
+def ufold_predict(seq, dirpath="../UFold"):
+    # dirpath is the path to the UFold repository
     # https://github.com/uci-cbcl/UFold
 
     # UFold rejects sequences longer then 600 nt
@@ -64,18 +64,18 @@ def ufold_predict(seq, path_ufold="../UFold"):
             seq_bases[i] = np.random.choice(authorized_bases)
     seq = "".join(seq_bases)
 
-    path_ufold = Path(path_ufold)
+    dirpath = Path(dirpath)
 
     # prepare input file
     suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
     temp_rna_name = f"TEMP_RNA_NAME_{suffix}"
-    path_in = path_ufold / "data" / "input.txt"
-    path_out = path_ufold / "results" / "save_ct_file" / f"{temp_rna_name}.ct"
+    path_in = dirpath / "data" / "input.txt"
+    path_out = dirpath / "results" / "save_ct_file" / f"{temp_rna_name}.ct"
     with open(path_in, "w") as f:
         f.write(f">{temp_rna_name}\n{seq}\n")
 
     # predict
-    subprocess.run(["python", "ufold_predict.py"], cwd=path_ufold)
+    subprocess.run(["python", "ufold_predict.py"], cwd=dirpath)
 
     # read output
     with open(path_out, "r") as f:
@@ -93,14 +93,14 @@ def ufold_predict(seq, path_ufold="../UFold"):
     return pred
 
 
-def linearfold_predict(seq, path_linearfold="../LinearFold"):
-    # path_linearfold is the path to the LinearFold repository
+def linearfold_predict(seq, dirpath="../LinearFold"):
+    # dirpath is the path to the LinearFold repository
     # https://github.com/LinearFold/LinearFold
 
-    path_linearfold = Path(path_linearfold)
+    dirpath = Path(dirpath)
 
     # predict
-    pred = os.popen(f"echo {seq} | {path_linearfold / 'linearfold'}").read()
+    pred = os.popen(f"echo {seq} | {dirpath / 'linearfold'}").read()
 
     # read output
     pred = (
@@ -121,12 +121,12 @@ def rnafold_predict(seq):
     return pred
 
 
-def probknot_predict(seq, path_rnastructure="../RNAstructure"):
-    # path_rnastructure is the path to the RNAstructure folder
+def probknot_predict(seq, dirpath="../RNAstructure"):
+    # dirpath is the path to the RNAstructure folder
     # ProbKnot is part of the RNAstructure package
     # https://rna.urmc.rochester.edu/RNAstructure.html
 
-    path_rnastructure = Path(path_rnastructure)
+    dirpath = Path(dirpath)
 
     suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
     path_in = f"temp_probknot_in_{suffix}.seq"
@@ -137,10 +137,10 @@ def probknot_predict(seq, path_rnastructure="../RNAstructure"):
         f.write(seq)
 
     os.popen(
-        f"{path_rnastructure / 'exe' / 'ProbKnot'} {path_in} {path_middle} --sequence"
+        f"{dirpath / 'exe' / 'ProbKnot'} {path_in} {path_middle} --sequence"
     ).read()
     os.popen(
-        f"{path_rnastructure / 'exe' / 'ct2dot'} {path_middle} -1 {path_out}"
+        f"{dirpath / 'exe' / 'ct2dot'} {path_middle} -1 {path_out}"
     ).read()
     pred = open(path_out, "r").read().split("\n")[2]
 
@@ -151,35 +151,35 @@ def probknot_predict(seq, path_rnastructure="../RNAstructure"):
     return pred
 
 
-def knotfold_predict(seq, path_knotfold="../KnotFold"):
-    # path_knotfold is the path to the KnotFold repository
+def knotfold_predict(seq, dirpath="../KnotFold"):
+    # dirpath is the path to the KnotFold repository
     # https://github.com/gongtiansu/KnotFold
 
     if len(seq) == 1:  # to avoid IndexError from KnotFold for sequences of length 1
         return "."
 
-    path_knotfold = Path(path_knotfold)
+    dirpath = Path(dirpath)
 
     # prepare input file
     suffix = datetime.datetime.now().strftime("%Y.%m.%d:%H.%M.%S:%f")
     temp_rna_name = f"TEMP_RNA_NAME_{suffix}"
     path_in = f"temp_knotfold_in_{suffix}.fasta"
     path_out = f"{temp_rna_name}.bpseq"
-    with open(path_knotfold / path_in, "w") as f:
+    with open(dirpath / path_in, "w") as f:
         f.write(f">{temp_rna_name}\n{seq}\n")
 
     # predict
     res = subprocess.run(
-        ["python", "KnotFold.py", "-i", path_in, "-o", ".", "--cuda"], cwd=path_knotfold
+        ["python", "KnotFold.py", "-i", path_in, "-o", ".", "--cuda"], cwd=dirpath
     )
 
     # read output
-    os.remove(path_knotfold / path_in)
+    os.remove(dirpath / path_in)
     if res.returncode != 0:
         raise MemoryError(
             f"The KnotFold script could not run properly. The input sequence may be too long. Avoid sequences longer than 2000 nucleotides when using KnotFold. If the sequence is shorter, then something else in the KnotFold script may have caused this error. Look in the traceback from the KnotFold script for more information."
         )
-    with open(path_knotfold / path_out, "r") as f:
+    with open(dirpath / path_out, "r") as f:
         pred_txt = f.read()
     pairs = np.array(
         [int(line.split(" ")[-1]) for line in pred_txt.strip().split("\n")]
@@ -189,7 +189,7 @@ def knotfold_predict(seq, path_knotfold="../KnotFold"):
     pairs = np.array([j if pairs[j - 1] - 1 == i else 0 for i, j in enumerate(pairs)])
     pred = pairs_to_struct(pairs)
 
-    os.remove(path_knotfold / path_out)
+    os.remove(dirpath / path_out)
 
     return pred
 
