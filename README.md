@@ -30,7 +30,7 @@ In order to use one of these structure prediction tools, it should be installed 
 For example, [KnotFold](https://github.com/gongtiansu/KnotFold) should be installed at `../KnotFold`.
 
 The structure prediction tools can also be installed anywhere else on your system. \
-In that case, the path must be specified to the wrapper as the `dirpath` argument when using [KnotFold](https://github.com/gongtiansu/KnotFold), [ProbKnot](https://rna.urmc.rochester.edu/RNAstructureWeb/Servers/ProbKnot/ProbKnot.html), [LinearFold](https://github.com/LinearFold/LinearFold), [MXfold2](https://github.com/mxfold/mxfold2) or [UFold](https://github.com/uci-cbcl/UFold), if the tool is not already installed in the same parent folder as DivideFold. \
+In that case, the path must be specified with the `dirpath` argument when using [KnotFold](https://github.com/gongtiansu/KnotFold), [ProbKnot](https://rna.urmc.rochester.edu/RNAstructureWeb/Servers/ProbKnot/ProbKnot.html), [LinearFold](https://github.com/LinearFold/LinearFold), [MXfold2](https://github.com/mxfold/mxfold2) or [UFold](https://github.com/uci-cbcl/UFold), if the tool is not already installed in the same parent folder as DivideFold. \
 The paths for [IPknot](https://github.com/satoken/ipknot), [pKiss](https://bibiserv.cebitec.uni-bielefeld.de/pkiss) and [RNAfold](https://www.tbi.univie.ac.at/RNA/) do not matter and do not need to be specified.
 
 ## Usage
@@ -41,7 +41,7 @@ You can predict a sequence's secondary structure using the prediction function:
 ``` python
 from dividefold.predict import dividefold_predict
 import numpy as np
-sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
+sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=2000))  # example sequence
 prediction = dividefold_predict(sequence)
 ```
 By default, the structure prediction tool to be applied after partition is [KnotFold](https://github.com/gongtiansu/KnotFold).
@@ -53,7 +53,7 @@ If the corresponding tool is installed on your system, you can use it as the str
 ``` python
 from dividefold.predict import dividefold_predict, knotfold_predict, ipknot_predict, pkiss_predict, probknot_predict, rnafold_predict, linearfold_predict, mxfold2_predict, ufold_predict
 import numpy as np
-sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
+sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=2000))  # example sequence
 prediction = dividefold_predict(sequence, predict_fnc=rnafold_predict)  # if you want to use RNAfold as the structure prediction function
 ```
 
@@ -68,11 +68,11 @@ def my_structure_prediction_function(seq):  # example structure prediction funct
     n = len(seq)
     return "(" * (n // 2) + "." * (n % 2) + ")" * (n // 2)
 
-sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
+sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=2000))  # example sequence
 prediction = dividefold_predict(sequence, predict_fnc=my_structure_prediction_function)
 ```
 
-### Specifying maximum fragment length (partition depth) 
+### Specifying the maximum fragment length (partition depth) 
 
 An important parameter is the maximum partition length. A lower value will lead to the sequence being partitioned more deeply into smaller fragments. \
 The fragments can be up to 1000 nc long by default, but if the structure prediction tool struggles to accurately process fragments of this size, it could be better to yield smaller fragments. \
@@ -80,7 +80,7 @@ This can be specified with the `max_fragment_length` argument:
 ``` python
 from dividefold.predict import dividefold_predict
 import numpy as np
-sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
+sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=2000))  # example sequence
 prediction = dividefold_predict(sequence, max_fragment_length=200)  # if you want fragments to be smaller than 200 nc
 ```
 
@@ -90,7 +90,7 @@ To obtain the fragments resulting from DivideFold's partition, use `return_fragm
 ``` python
 from dividefold.predict import dividefold_predict
 import numpy as np
-sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
+sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=2000))  # example sequence
 fragments, prediction = dividefold_predict(sequence, return_fragments=True)
 ```
 
@@ -98,7 +98,7 @@ If you're only interested in the fragments, and not in predicting the secondary 
 ``` python
 from dividefold.predict import dividefold_predict
 import numpy as np
-sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=3000))  # example sequence
+sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=2000))  # example sequence
 fragments = dividefold_predict(sequence, return_fragments=True, return_structure=False)
 ```
 In this case, only the partition will be computed, and no structure prediction tool needs to be installed as none will be used.
