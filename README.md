@@ -13,7 +13,7 @@ DivideFold aims to partition the sequence in a way that the structure is conserv
 
 ## Installation
 
-Clone the repository and install with your preferred backend:
+Clone the repository and install with your preferred backend (`torch` is recommended for compatibility with [KnotFold](https://github.com/gongtiansu/KnotFold)):
 ``` console
 git clone https://github.com/Ashargin/DivideFold
 cd DivideFold
@@ -22,7 +22,6 @@ source myenv/bin/activate
 pip install --upgrade pip
 pip install -e .[torch]     # or .[tensorflow]
 ```
-*You may omit [torch] or [tensorflow] if managing the Keras backend separately.* \
 
 We also recommend that you install [KnotFold](https://github.com/gongtiansu/KnotFold) since it is the structure prediction function that we use by default.
 
