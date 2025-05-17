@@ -34,7 +34,7 @@ DEFAULT_CUT_MODEL = Path(__file__).parents[2] / "data/models/divide_model.keras"
 default_cut_model = keras.models.load_model(DEFAULT_CUT_MODEL)
 
 # Create an empty directory for temporary files
-temp_dir = Path("temp")
+temp_dir = Path(__file__).parents[2] / "temp"
 if not os.path.exists(temp_dir):
     os.mkdir(temp_dir)
 
