@@ -627,10 +627,11 @@ def dividefold_predict(
     return_structure=True,
     return_fragments=False,
 ):
+    alias_predict_fnc = predict_fnc
     if isinstance(predict_fnc, list):
-        predict_fnc = lambda seq: ensemble_predict(seq, predict_fncs=predict_fnc)
+        predict_fnc = lambda seq: ensemble_predict(seq, predict_fncs=alias_predict_fnc)
     if dirpath is not None:
-        predict_fnc = lambda seq: predict_fnc(seq, dirpath=dirpath)
+        predict_fnc = lambda seq: alias_predict_fnc(seq, dirpath=dirpath)
 
     if max_steps is not None and max_steps < min_steps:
         raise ValueError("max_steps must be greater than min_steps.")
