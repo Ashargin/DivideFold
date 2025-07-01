@@ -404,7 +404,7 @@ def dividefold_get_cuts(
     cuts = None
     backend = keras.backend.backend()
     if backend == "torch":
-        cuts = cut_model(seq_mat).detach().cpu().numpy().ravel()
+        cuts = cut_model({"input_layer": seq_mat}).detach().cpu().numpy().ravel()
     elif backend == "tensorflow":
         cuts = cut_model(seq_mat).numpy().ravel()
     else:
