@@ -731,6 +731,8 @@ def dividefold_predict(
     else:  # single prediction function
         global_pred = assemble_fragments(frag_preds)
 
+    global_pred = optimize_pseudoknots(global_pred) if set(global_pred) != {"?"} \
+                                                    else global_pred
     if not return_fragments:
         return global_pred
 
