@@ -227,7 +227,7 @@ def knotfold_predict(seq, dirpath="../KnotFold"):
     os.remove(dirpath / path_in)
     if res.returncode != 0:
         raise RuntimeError(
-            f"KnotFold could not run properly. There could be an issue with your KnotFold installation. Please verify that KnotFold is correctly installed at {dirpath}, or specify another directory with dirpath=path/to/KnotFold."
+            f"KnotFold could not run properly. There could be an issue with your KnotFold installation, or the input fragments could be too long and cause a memory error.\nPlease verify that KnotFold is correctly installed at {dirpath}, or specify another directory with dirpath=path/to/KnotFold.\nIf KnotFold is correctly installed, consider using shorter fragments by specifying a smaller max_fragment_length to avoid memory errors."
         )
     with open(dirpath / path_out, "r") as f:
         pred_txt = f.read()
@@ -731,8 +731,7 @@ def dividefold_predict(
     else:  # single prediction function
         global_pred = assemble_fragments(frag_preds)
 
-    global_pred = optimize_pseudoknots(global_pred) if set(global_pred) != {"?"} \
-                                                    else global_pred
+    global_pred = optimize_pseudoknots(global_pred)
     if not return_fragments:
         return global_pred
 
