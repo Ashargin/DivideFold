@@ -91,7 +91,7 @@ To obtain the fragments resulting from DivideFold's partition, use `return_fragm
 from dividefold.predict import dividefold_predict
 import numpy as np
 sequence = "".join(np.random.choice(["A", "U", "C", "G"], size=2000))  # example sequence
-fragments, prediction = dividefold_predict(sequence, return_fragments=True)
+prediction, fragments = dividefold_predict(sequence, return_fragments=True)
 ```
 
 If you're only interested in the fragments, and not in predicting the secondary structure, you can use `return_structure=False`:

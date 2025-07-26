@@ -735,4 +735,4 @@ def dividefold_predict(
     if not return_fragments:
         return global_pred
 
-    return fragments, global_pred
+    return global_pred, fragments
